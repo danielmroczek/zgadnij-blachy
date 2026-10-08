@@ -1,0 +1,250 @@
+/* Zgadnij blachy! — styl flat, wzór: notatki/standardowe-tablice-v1-1-.png */
+
+:root {
+  --blue: #003399;
+  --bg: #f4f5f7;
+  --ink: #17181c;
+  --char-ink: #101010;
+  --plate-bg: #fff;
+  --answer-border: #c8ccd4;
+
+  /* --- tablica: wymiary z zał. 12 Dz.U. 2024 poz. 1709 --- */
+  /* 100vw obejmuje scrollbar, a .app ma 16 px paddingu z każdej strony —
+     rezerwujemy 64 px, by tablica nigdy nie wypchnęła layoutu w poziomy scroll */
+  --plate-w: min(calc(100vw - 64px), 520px);
+  --plate-h: calc(var(--plate-w) * 114 / 520); /* aspect 260:57 — tablica 520×114 mm (rys. 7) */
+
+  /* Skala: 1 mm tablicy = var(--plate-w) / 520 */
+  --mm: calc(var(--plate-w) / 520);
+
+  /* Wysokość znaków: 80 mm (pkt 2.11, rys. 7; pakiet III = jednorzędowe samochodowe).
+     Glify fontu Arklatrs mają 76% font-size, stąd dzielenie. */
+  --char-glyph-ratio: 0.76;
+  --char-h: calc(80 * var(--mm) / var(--char-glyph-ratio));
+
+  /* Pas UE wg rys. 8: 6.5 mm margines + 24 mm tło */
+  --euroband-w: calc(30 * var(--mm));
+
+  /* Nalepka legalizacyjna: 18×30 mm, R=3 mm (pkt 2.6 lit. a). */
+  --sticker-w: calc(18 * var(--mm));
+  --sticker-h: calc(30 * var(--mm));
+  --sticker-radius: calc(3 * var(--mm));
+
+  --border-radius: calc(5 * var(--mm));
+
+  /* Metryki fontu Arklatrs (pomiar measureText przy 100 px) */
+  --font-ascent: 0.91;
+  --font-descent: 0.21; /* sum: em-box = 1.12 fs */
+  --glyph-ratio: 0.76;  /* wysokość glifów = 0.76 fs (podstawa --char-h) */
+
+  /* Wycentrowanie pionowe glifów: line-height 1 centruje em-box (1.12 fs), baseline
+     ląduje na (1−em)/2 + ascent = 0.85 fs od góry; środek glifów na
+     baseline − glyph/2 = 0.47 fs ⇒ trzeba przesunąć w dół o
+     (glyph + descent − ascent) / 2 = 0.03 fs (wzór w jednostkach font-size). */
+  --char-rise: calc((var(--glyph-ratio) + var(--font-descent) - var(--font-ascent)) / 2); /* = 0.03 */
+}
+
+@font-face {
+  font-family: "Arklatrs";
+  src: url("dist/arklatrs.ttf") format("truetype");
+  font-display: block;
+}
+
+/* padding liczy się w składanej szerokości — bez tego width:100% + padding wychodzi poza viewport */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 2rem 1rem;
+  width: 100%;
+  max-width: 640px;
+
+  & h1 {
+    font-size: 1.4rem;
+    margin: 0;
+  }
+}
+
+.score-bar {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+/* ---------- tablica ---------- */
+
+.plate {
+  width: var(--plate-w);
+  height: var(--plate-h);
+  background: var(--plate-bg);
+  border: var(--border-radius) solid var(--ink);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+
+  /* nagłówek tablicy = euroband: niebieskie tło, stała szerokość */
+  & .euroband {
+    font-family: "Arklatrs", monospace;
+    flex: 0 0 var(--euroband-w);
+    font-size: calc(var(--plate-h) * 0.7); /* rozmiar bazowy gwiazdek i „PL” */
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--blue);
+    color: #fff;
+    text-align: center;
+
+    /* gwiazdki + PL rysowane fontem tablic */
+    & .plate-stars { color: yellow; }
+
+    & .plate-pl {
+      margin-right: calc(var(--plate-h) * -0.07);
+      margin-bottom: calc(var(--plate-h) * -0.1);
+    }
+  }
+
+  /* grupa znaków: prefix | nalepka | suffix — space-between wypełnia resztę */
+  & .plate-chars {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+  }
+
+  & .plate-prefix,
+  & .plate-suffix {
+    font-family: "Arklatrs", monospace;
+    font-size: var(--char-h); /* glify = --glyph-ratio fs ⇒ realna wysokość znaków 80 mm (pkt 2.11, rys. 7) */
+    line-height: 1;
+    color: var(--char-ink);
+    white-space: pre;
+    transform: translateY(calc(var(--char-rise) * 1em));
+  }
+
+  /* nalepka legalizacyjna — "hologram", między członami dzięki space-between;
+     pkt 2.6 lit. a: dolna krawędź 42 mm od dołu ⇒ środek = 57 mm = środek tablicy,
+     więc align-items: center dokładnie realizuje przepis. */
+  & .plate-sticker {
+    width: var(--sticker-w);
+    height: var(--sticker-h);
+    border-radius: var(--sticker-radius);
+    background: linear-gradient(135deg,
+      rgba(200, 200, 205, 0.9) 0%,
+      rgba(165, 222, 178, 0.3) 15%,
+      rgba(165, 170, 178, 0.6) 30%,
+      rgba(220, 224, 228, 0.85) 55%,
+      rgba(220, 170, 255, 0.4) 62%,
+      rgba(160, 165, 172, 0.55) 80%,
+      rgba(210, 214, 219, 0.9) 100%);
+    /* box-shadow:
+      inset 0 0 4px rgba(255, 255, 255, 0.7),
+      0 1px 2px rgba(0, 0, 0, 0.25); */
+  }
+
+  /* Odmiany 8-znakowe (rys. 9, wiersze 12–14): suma członów przy pełnych
+     odstępach przekracza 480 mm dostępnych (520 − 2×5 ramka − 30 euroband):
+       3L+5C:    3×67,2 + 5×54,4 + 18 = 491,6 mm → deficyt ~12 mm
+       3L+4C,1L: 3×67,2 + 4×54,4 + 67,2 + 18 = 504,4 mm → deficyt ~24 mm
+       3L+3C,2L: 3×67,2 + 3×54,4 + 2×67,2 + 18 = 517,3 mm → deficyt ~37 mm
+     Wg tablicy odmian odstępy spadają (b: 12→8, d: 12→10, c: 40→35), więc
+     stosujemy ujemny tracking proporcjonalny do deficytu (−3/−5/−7 mm/znak)
+     oraz węższą strefę nalepki (c: 40→35 ⇒ −3 mm z każdej strony). Naturalny
+     odstęp glifów (litery ~12 mm, cyfry ~10 mm) pozostaje dodatni — znaki się
+     nie sklejają. */
+  &[data-variant='3L+5C'],
+  &[data-variant='3L+4C,1L'],
+  &[data-variant='3L+3C,2L'] {
+    & .plate-sticker {
+      margin-inline: calc(-3 * var(--mm));
+    }
+  }
+
+  &[data-variant='3L+5C'] {
+    & .plate-prefix,
+    & .plate-suffix {
+      letter-spacing: calc(-3 * var(--mm));
+    }
+  }
+
+  &[data-variant='3L+4C,1L'] {
+    & .plate-prefix,
+    & .plate-suffix {
+      letter-spacing: calc(-5 * var(--mm));
+    }
+  }
+
+  &[data-variant='3L+3C,2L'] {
+    & .plate-prefix,
+    & .plate-suffix {
+      letter-spacing: calc(-7 * var(--mm));
+    }
+  }
+}
+
+/* ---------- odpowiedzi ---------- */
+
+.answers {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+  width: 100%;
+
+  /* szersze ekrany: siatka 2×2 */
+  @media (min-width: 480px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  & .answer {
+    padding: 0.9rem 1rem;
+    font-size: 1rem;
+    border: 2px solid var(--answer-border);
+    border-radius: 10px;
+    background: var(--plate-bg);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+
+    &:hover:not(:disabled) { border-color: var(--blue); }
+    &:disabled { cursor: default; }
+
+    &.correct { border-color: #1a9c47; background: #e6f7ec; }
+    &.wrong { border-color: #cc3344; background: #fdecef; }
+  }
+}
+
+/* ---------- reszta ---------- */
+
+.btn-next {
+  padding: 0.7rem 1.6rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--blue);
+  color: #fff;
+  cursor: pointer;
+
+  &:hover { filter: brightness(1.15); }
+}
+
+.status {
+  margin: 0;
+  font-size: 1rem;
+  min-height: 1.4em;
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zgadnij blachy!</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <h1>Zgadnij blachy!</h1>
+    <div class="score-bar">
+      <span>Punkty: <strong id="score">0</strong></span>
+      <span>Pytanie: <strong id="round">0</strong></span>
+    </div>
+    <div id="plate" class="plate" aria-label="Tablica rejestracyjna">
+      <div class="euroband">
+        <span class="plate-stars" title="Iskro Bogów!">*</span><span class="plate-pl">|</span></div>
+      <div class="plate-chars">
+        <span class="plate-prefix"></span>
+        <div class="plate-sticker" title="Nalepka legalizacyjna"></div>
+        <span class="plate-suffix"></span>
+      </div>
+    </div>
+    <div id="answers" class="answers">
+      <button class="answer" data-index="0"></button>
+      <button class="answer" data-index="1"></button>
+      <button class="answer" data-index="2"></button>
+      <button class="answer" data-index="3"></button>
+    </div>
+    <div class="actions">
+      <button id="next" class="btn-next" hidden>Następna tablica</button>
+    </div>
+    <p id="status" class="status" hidden></p>
+  </main>
+  <script type="module" src="js/quiz.js"></script>
+</body>
+</html>

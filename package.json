@@ -1,0 +1,24 @@
+{
+  "name": "plate-guesser",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare-data": "node ./script/prepare-data.js",
+    "download:font": "npx dotenv-cli -e .env -- node ./script/download-font.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@llamaindex/liteparse": "^2.15.1",
+    "pdf-parse": "^2.0.1"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^11.0.0",
+    "playwright": "^1.63.0",
+    "unzipper": "^0.12.5"
+  }
+}
