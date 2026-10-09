@@ -73,9 +73,14 @@ export function sygnatura(eliId) {
 
 async function fetchAmendmentText(eliId) {
   const url = `${ELI_API}/${eliId}/text.pdf`;
-  const res = await fetch(url);
+  // PDF-y nowelizacji mają kilka-kilkanaście MB i gov/eli bywa wolny — loguję
+  // pobranie PRZED (to była główna przyczyna ciszy po faze 1/3) + timeout.
+  console.log(`  ⏬ ${eliId}: pobieranie PDF...`);
+  const t0 = Date.now();
+  const res = await fetch(url, { signal: AbortSignal.timeout(120_000) });
   if (!res.ok) throw new Error(`Błąd pobierania PDF (${eliId}): ${res.status}`);
   const buf = Buffer.from(await res.arrayBuffer());
+  console.log(`     ✓ ${(buf.length / 1024 / 1024).toFixed(2)} MB (${Date.now() - t0} ms), parsowanie...`);
   const parser = new PDFParse({ data: new Uint8Array(buf) });
   try {
     const { text } = await parser.getText();
@@ -174,6 +179,7 @@ export async function applyAllAmendments(details, wojewodztwa) {
   for (const a of chronologicznie) {
     const t0 = Date.now();
     const text = await fetchAmendmentText(a.id);
+    console.log(`     ✓ tekst: ${text.length.toLocaleString('pl-PL')} znaków (${Date.now() - t0} ms razem)`);
     const zmiany = parseTableAmendments(text);
     if (!zmiany.length) {
       // sekcja zał. 13 w tekście JEST, ale parser nic nie wyciągnął — możliwa
