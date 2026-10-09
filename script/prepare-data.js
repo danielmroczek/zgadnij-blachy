@@ -1,7 +1,8 @@
 // Przygotowuje plik danych quizu (public/dist/quiz-data.json) z kompletem:
 // rejestracje (wyróżniki), powiaty (siedziby) i proponowane odpowiedzi.
 // Logika żyje w modułach script/lib/*.js — ten plik tylko skleja CLI.
-// Siedziby są wbudowane (script/lib/siedziby-data.js) — bez pliku wejściowego.
+// Dane pobierane w locie: wyróżniki z ELI (Dz.U. 2024/1709 + nowelizacje),
+// siedziby z Bazy JST (MSWiA) — bez plików wejściowych.
 //
 // Użycie:
 //   node script/prepare-data.js [--top 5] [--out public/dist/quiz-data.json]

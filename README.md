@@ -40,9 +40,7 @@ domeny — workflow sam ustawi właściwy base URL).
 
 ## Dane (`public/dist/quiz-data.json`)
 
-Cały komplet danych quizu jest generowany jednym poleceniem (bez plików
-wejściowych — siedziby powiatów są wbudowane w kod i twardo walidowane:
-**314 powiatów ziemskich + 66 miast na prawach powiatu = 380**, 16 województw):
+Cały komplet danych quizu jest generowany jednym poleceniem:
 
 ```bash
 npm run prepare-data
@@ -58,12 +56,21 @@ tabeli załącznika nr 13 (np. „po literach „WR” dodaje się przecinek i l
 „WW””) — zero zahardkodowanych kodów. Gdy się pojawi nowa nowelizacja,
 `npm run prepare-data` sam ją wciągnie (log pokaże każdy naniesiony kod).
 
+Siedziby powiatów pochodzą z **Bazy JST (MSWiA)** — bazy teleadresowej
+jednostek samorządu terytorialnego ([gov.pl/web/mswia/baza-jst](https://www.gov.pl/web/mswia/baza-jst)).
+Skrypt pobiera stronę, wyciąga link do załącznika XLS i parsuje go: powiaty
+ziemskie mają typ `P` (siedziba = miejscowość urzędu, starostwo powiatowe),
+miasta na prawach powiatu — typ `MNP` (siedziba = sama miejscowość). Wynik jest
+twardo walidowany: **314 powiatów ziemskich + 66 miast na prawach powiatu
+= 380**, 16 województw. Pobrany XLS jest cache'owany w `tmp/baza-jst.xls`
+(ważny tydzień), żeby generowanie nie uderzało w gov.pl za każdym razem.
+
 Plik ma jedną mapę `rejestracje` — każdy kod niesie komplet danych (dla kodów
 tego samego powiatu dane się powtarzają, to zamierzona redundancja):
 
 ```jsonc
 {
-  "meta": { "wygenerowano", "liczy": { ... }, "zrodla": { ... } },
+  "meta": { "wygenerowano", "liczby": { ... }, "zrodla": { ... } },
   "rejestracje": {
     "WM": {
       "nazwa": "miński", "wojewodztwo": "MAZOWIECKIE",
@@ -96,8 +103,7 @@ script/                   # skrypty Node
   lib/
     rejestracje.js        # wyróżniki ze stałego URL ELI (Dz.U. 2024 poz. 1709)
     nowelizacje.js        # automat: PDF-y aktów zmieniających -> kody zał. 13
-    siedziby-data.js      # wbudowane dane siedzib (380 powiatów, 16 województw)
-    siedziby.js           # rozwija dane siedzib + walidacja 314+66=380
+    siedziby.js           # siedziby z Bazy JST (MSWiA) + walidacja 314+66=380
     odpowiedzi.js         # proponowane odpowiedzi (dystraktory) per kod
     quiz-data.js          # skleja dane i zapisuje quiz-data.json
   download-font.js        # pobiera font (zip) do dist/; URL z env FONT_URL
