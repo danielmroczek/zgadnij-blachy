@@ -49,6 +49,15 @@ npm run prepare-data
 # warianty: node script/prepare-data.js --top 5 [--out inna/sciezka.json]
 ```
 
+Źródłem wyróżników jest rozporządzenie Dz.U. 2024 poz. 1709 pobierane ze
+**stałego adresu ELI** (`eli.gov.pl/api/acts/DU/2024/1709/text.html`).
+ELI publikuje tekst **pierwotny** (nie ujednolicony), ale nowelizacje są
+nanoszone **automatycznie**: skrypt czyta z metadanych ELI wykaz „Akty
+zmieniające”, pobiera PDF każdego z nich i parsuje frazę zmieniającą kolumnę 5
+tabeli załącznika nr 13 (np. „po literach „WR” dodaje się przecinek i litery
+„WW””) — zero zahardkodowanych kodów. Gdy się pojawi nowa nowelizacja,
+`npm run prepare-data` sam ją wciągnie (log pokaże każdy naniesiony kod).
+
 Plik ma jedną mapę `rejestracje` — każdy kod niesie komplet danych (dla kodów
 tego samego powiatu dane się powtarzają, to zamierzona redundancja):
 
@@ -59,6 +68,8 @@ tego samego powiatu dane się powtarzają, to zamierzona redundancja):
     "WM": {
       "nazwa": "miński", "wojewodztwo": "MAZOWIECKIE",
       "dodatkowe": true,                // tablice "dodatkowe" (2. litera województwa)
+      "akt": "Dz.U. 2024 poz. 1709",    // akt, w którym kod pierwszy raz się pojawił
+                                        //   (nowelizacja, jeśli kod został dodany później)
       "siedziba": "Mińsk Mazowiecki", "typ": "powiat",
       // typ: "powiat" | "miasto" (miasto na prawach powiatu)
       "propozycje": ["makowski", ...]   // proponowane odpowiedzi (dystraktory)
@@ -83,7 +94,8 @@ script/                   # skrypty Node
   prepare-data.js         # główny skrypt: generuje public/dist/quiz-data.json
                           #   ("npm run prepare-data"; --top/--out)
   lib/
-    rejestracje.js        # pobiera wyróżniki z ELI API (Dz.U. 2024 poz. 1709)
+    rejestracje.js        # wyróżniki ze stałego URL ELI (Dz.U. 2024 poz. 1709)
+    nowelizacje.js        # automat: PDF-y aktów zmieniających -> kody zał. 13
     siedziby-data.js      # wbudowane dane siedzib (380 powiatów, 16 województw)
     siedziby.js           # rozwija dane siedzib + walidacja 314+66=380
     odpowiedzi.js         # proponowane odpowiedzi (dystraktory) per kod
