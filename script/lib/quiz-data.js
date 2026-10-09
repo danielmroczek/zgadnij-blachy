@@ -3,7 +3,7 @@
 //
 // Struktura:
 // {
-//   meta: { wygenerowano, liczy: {...}, zrodla: {...} },
+//   meta: { wygenerowano, liczby: {...}, zrodla: {...} },
 //   rejestracje:   { kod: { nazwa, wojewodztwo, typ?, dodatkowe?,
 //                          siedziba?, propozycje: [nazwy powiatów] } }
 // }
@@ -12,7 +12,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { fetchRejestracje } from './rejestracje.js';
-import { loadSiedziby } from './siedziby.js';
+import { loadSiedziby, BAZA_JST_URL } from './siedziby.js';
 import { buildOdpowiedzi } from './odpowiedzi.js';
 
 const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
@@ -25,23 +25,27 @@ export async function buildQuizData({ top = 5, output = DEFAULT_OUTPUT } = {}) {
   console.log('=== 1/3 Rejestracje (ELI API) ===');
   const { meta: metaRej, rejestracje } = await fetchRejestracje();
 
-  console.log('=== 2/3 Siedziby powiatów ===');
-  const powiaty = loadSiedziby();
+  console.log('=== 2/3 Siedziby powiatów (Baza JST MSWiA) ===');
+  const powiaty = await loadSiedziby();
 
   console.log('=== 3/3 Proponowane odpowiedzi ===');
   const odpowiedzi = buildOdpowiedzi(rejestracje, powiaty, top);
   // odpowiedzi i siedziby mają te same klucze co rejestracje (nazwa powiatu) —
   // wszystko trafia bezpośrednio do wpisu kodu (dane są zduplikowane między
   // kodami tego samego powiatu, ale plik pozostaje płaski i samowystarczalny)
-  const siedzibaByNazwa = new Map(powiaty.map((p) => [p.nazwa, p]));
+  // Join po NAZWIE nie wystarcza — 10 nazw powiatów się dubluje między
+  // województwami (średzki, świdnicki, opolski…); klucz to para (wojewodztwo,
+  // nazwa). ELI ma województwo UPPERCASE, JST — z wielkiej litery → lowercase.
+  const klucz = (woj, nazwa) => `${woj.toLowerCase()}|${nazwa.toLowerCase()}`;
+  const siedzibaByKlucz = new Map(powiaty.map((p) => [klucz(p.wojewodztwo, p.nazwa), p]));
   for (const [kod, propozycje] of Object.entries(odpowiedzi)) {
     rejestracje[kod].propozycje = propozycje;
   }
 
   for (const [kod, rej] of Object.entries(rejestracje)) {
-    const p = siedzibaByNazwa.get(rej.nazwa);
+    const p = siedzibaByKlucz.get(klucz(rej.wojewodztwo, rej.nazwa));
     if (!p) {
-      console.warn(`⚠ ${kod}: brak siedziby dla "${rej.nazwa}" — wpis bez siedziba/typ`);
+      console.warn(`⚠ ${kod}: brak siedziby dla "${rej.nazwa}" (${rej.wojewodztwo}) — wpis bez siedziba/typ`);
       continue;
     }
     rej.siedziba = p.siedziba;
@@ -51,14 +55,17 @@ export async function buildQuizData({ top = 5, output = DEFAULT_OUTPUT } = {}) {
   const data = {
     meta: {
       wygenerowano: new Date().toISOString(),
-      liczy: {
+      liczby: {
         kodyRejestracji: Object.keys(rejestracje).length,
-        powiaty: siedzibaByNazwa.size,
+        powiaty: powiaty.length,
         dodatkowe: Object.values(rejestracje).filter((r) => r.dodatkowe).length,
       },
       zrodla: {
         rejestracje: { ...metaRej.dokument },
-        siedziby: 'M.P. 2001 poz. 325 (wykaz powiatów + siedziby; dane wbudowane, script/lib/siedziby-data.js)',
+        siedziby: {
+          opis: 'Baza JST (MSWiA) — baza teleadresowa jednostek samorządu terytorialnego: powiaty (typ P) i miasta na prawach powiatu (MNP), siedziba = miejscowość urzędu',
+          link: BAZA_JST_URL,
+        },
       },
     },
     rejestracje,
