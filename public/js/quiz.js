@@ -49,11 +49,17 @@ async function init() {
       .map((r) => [r.nazwa, { siedziba: r.siedziba, typ: r.typ }])
   );
 
-  pool = Object.entries(rejestracje).map(([code, v]) => ({
-    code,
-    nazwa: v.nazwa,
-    propozycje: v.propozycje ?? [],
-  }));
+  // domyślnie pomijamy tablice "dodatkowe" (2. litera województwa);
+  // przełącznik w ustawieniach połączy je z powrotem z pulą
+  const uwzglednijDodatkowe =
+    localStorage.getItem('zgadnij-blachy:dodatkowe') === '1';
+  pool = Object.entries(rejestracje)
+    .filter(([, v]) => uwzglednijDodatkowe || !v.dodatkowe)
+    .map(([code, v]) => ({
+      code,
+      nazwa: v.nazwa,
+      propozycje: v.propozycje ?? [],
+    }));
   startGame();
 }
 
