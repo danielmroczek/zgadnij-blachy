@@ -9,14 +9,29 @@ const nextBtn = document.getElementById('next');
 const statusEl = document.getElementById('status');
 const scoreEl = document.getElementById('score');
 const roundEl = document.getElementById('round');
+const quizEl = document.getElementById('quiz');
+const summaryEl = document.getElementById('summary');
+const summaryScoreEl = document.getElementById('summary-score');
+const summaryTimeEl = document.getElementById('summary-time');
+const summaryRateEl = document.getElementById('summary-rate');
+const restartBtn = document.getElementById('restart');
+const scoreBarEl = document.getElementById('score-bar');
+const titleEl = document.getElementById('title');
+
+const QUESTIONS_PER_GAME = 10;
 
 let rejestracje = null;      // quiz-data.json -> rejestracje
 let powiatyByName = null;    // nazwa powiatu -> { siedziba, typ } (z wpisów rejestracji)
 let pool = [];               // pula kodów z odpowiedziami (bez Warszawy)
 let current = null;
 let locked = false;
-let score = Number(localStorage.getItem('pg-score') ?? 0);
-let round = 0;
+let score = 0;               // punkty bieżącej gry
+let questionNo = 0;          // numer pytania w bieżącej grze (1..10)
+const AUTO_NEXT_MS = 3000;   // automatyczne przejście po odpowiedzi
+let autoTimer = null;        // uchwyt setInterval odliczania
+let answeringTime = 0;       // skumulowany czas odpowiedzi (bez pauz między pytaniami)
+let answeringStart = 0;      // performance.now() początku bieżącego segmentu odpowiedzi
+let pauseStart = 0;          // moment zablokowania ekranu (po odpowiedzi)
 /* ---------- dane ---------- */
 
 async function loadJson(path) {
@@ -39,8 +54,50 @@ async function init() {
     nazwa: v.nazwa,
     propozycje: v.propozycje ?? [],
   }));
+  startGame();
+}
 
+/* ----------mechanika gry ---------- */
+
+// pauza: domknij bieżący segment odpowiedzi (między pokazaniem pytania a odpowiedzią)
+function pauseClock() {
+  if (answeringStart) {
+    answeringTime += performance.now() - answeringStart;
+    answeringStart = 0;
+  }
+}
+
+function startGame() {
+  score = 0;
+  questionNo = 0;
+  answeringTime = 0;
+  answeringStart = 0;
+  pauseStart = 0;
+  cancelAutoNext();
   scoreEl.textContent = score;
+  scoreBarEl.hidden = false;
+  titleEl.hidden = false;
+  summaryEl.hidden = true;
+  quizEl.hidden = false;
+  nextQuestion();
+}
+
+function endGame() {
+  pauseClock(); // domknij ostatni segment (czas nad 10. pytaniem)
+  const elapsed = answeringTime / 1000;
+  scoreBarEl.hidden = true;
+  titleEl.hidden = true;
+  quizEl.hidden = true;
+  summaryEl.hidden = false;
+  summaryScoreEl.textContent = score;
+  summaryTimeEl.textContent = elapsed.toFixed(1);
+  summaryRateEl.textContent = (score / elapsed).toFixed(2);
+  restartBtn.focus();
+}
+
+function nextQuestion() {
+  answeringStart = performance.now(); // nowy segment: czas nad tym pytaniem liczy się od teraz
+  questionNo += 1;
   renderQuestion();
 }
 
@@ -103,8 +160,7 @@ function renderQuestion() {
   renderPlate(entry);
   nextBtn.hidden = true;
   statusEl.hidden = true;
-  round += 1;
-  roundEl.textContent = round;
+  roundEl.textContent = `${questionNo}/${QUESTIONS_PER_GAME}`;
 }
 
 /* ---------- interakcja ---------- */
@@ -112,6 +168,9 @@ function renderQuestion() {
 function onAnswer(ev) {
   if (locked) return;
   locked = true;
+  // klik w odpowiedź triggersuje start odliczania — zatrzymaj bąbelkowanie,
+  // żeby globalny listener „anuluj auto” nie skasował go jeszcze w tym samym evencie
+  ev.stopPropagation();
 
   const idx = Number(ev.currentTarget.dataset.index);
   const isCorrect = idx === current.correct;
@@ -124,18 +183,66 @@ function onAnswer(ev) {
 
   if (isCorrect) {
     score += 1;
-    localStorage.setItem('pg-score', score);
     scoreEl.textContent = score;
   }
 
   statusEl.textContent = isCorrect ? '✅ Dobrze!' : '❌ Źle.';
   statusEl.hidden = false;
-  nextBtn.hidden = false;
-  nextBtn.focus();
+
+  if (questionNo >= QUESTIONS_PER_GAME) {
+    nextBtn.textContent = 'Pokaż wynik';
+    nextBtn.hidden = false;
+    nextBtn.focus();
+  } else {
+    nextBtn.textContent = 'Następna tablica';
+    nextBtn.hidden = false;
+    nextBtn.focus();
+    startAutoNext();
+  }
+}
+
+/* ---------- automatyczne przejście ---------- */
+
+function startAutoNext() {
+  pauseClock(); // stop — pauza trwa od pary az
+  pauseStart = performance.now();
+  let remaining = AUTO_NEXT_MS / 1000;
+  const updateLabel = () => {
+    nextBtn.textContent = `Następna tablica (${remaining})`;
+  };
+  updateLabel();
+  clearInterval(autoTimer);
+  autoTimer = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      cancelAutoNext();
+      nextQuestion();
+    } else updateLabel();
+  }, 1000);
+}
+
+function cancelAutoNext() {
+  clearInterval(autoTimer);
+  autoTimer = null;
+  // usuń zatrzymany licznik z etykiety przycisku (powrót do zwykłego stanu)
+  nextBtn.textContent = questionNo >= QUESTIONS_PER_GAME ? 'Pokaż wynik' : 'Następna tablica';
 }
 
 answerButtons.forEach(btn => btn.addEventListener('click', onAnswer));
-nextBtn.addEventListener('click', renderQuestion);
+nextBtn.addEventListener('click', () => {
+  cancelAutoNext();
+  pauseStart = 0;
+  if (questionNo >= QUESTIONS_PER_GAME) endGame();
+  else nextQuestion();
+});
+// klik/tap gdziekolwiek poza przyciskiem „Następna” → rezygnacja z auto-przejścia
+document.addEventListener('click', (ev) => {
+  if (!autoTimer) return;
+  if (ev.target === nextBtn) return;
+  cancelAutoNext();
+  pauseStart = 0;
+});
+restartBtn.addEventListener('click', startGame);
 
 init().catch(err => {
   plateEl.hidden = true;

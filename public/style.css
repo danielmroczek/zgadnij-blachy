@@ -9,9 +9,12 @@
   --answer-border: #c8ccd4;
 
   /* --- tablica: wymiary z zał. 12 Dz.U. 2024 poz. 1709 --- */
-  /* 100vw obejmuje scrollbar, a .app ma 16 px paddingu z każdej strony —
-     rezerwujemy 64 px, by tablica nigdy nie wypchnęła layoutu w poziomy scroll */
-  --plate-w: min(calc(100vw - 64px), 520px);
+  /* 100vw obejmuje scrollbar; .app ma 16 px paddingu z każdej strony.
+     Tablica ma być tak szeroka jak .answer (100% .app = 100vw − 32 px),
+     ale tylko na wąskich ekranach — powyżej tej szerokości limit 520 px
+     wychodzi na wierzch; rezerwujemy dodatkowe 32 px, by scrollbar
+     nigdy nie wypchnął layoutu w poziomy scroll */
+  --plate-w: min(calc(100vw - 32px), 520px);
   --plate-h: calc(var(--plate-w) * 114 / 520); /* aspect 260:57 — tablica 520×114 mm (rys. 7) */
 
   /* Skala: 1 mm tablicy = var(--plate-w) / 520 */
@@ -63,6 +66,9 @@ body {
   place-items: center;
 }
 
+/* atrybut [hidden] musi wygrywać z display:flex/grid ustawianym przez klasy */
+[hidden] { display: none !important; }
+
 .app {
   display: flex;
   flex-direction: column;
@@ -83,6 +89,18 @@ body {
   gap: 2rem;
   font-size: 0.95rem;
   color: #555;
+}
+
+/* ---------- obszar gry ---------- */
+
+.quiz {
+  /* flex column: odstępy między tablicą, odpowiedziami, przyciskiem i statusem
+     regulowane jednym gapem */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
 }
 
 /* ---------- tablica ---------- */
@@ -247,4 +265,31 @@ body {
   margin: 0;
   font-size: 1rem;
   min-height: 1.4em;
+}
+
+/* ---------- podsumowanie gry ---------- */
+
+.summary {
+  /* jak score-bar + dodatkowa przestrzeń pod przycisk restartu */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 0.95rem;
+  color: #555;
+  padding: 0.5rem 0;
+}
+
+.summary h2 { margin: 0 0 0.5rem; }
+
+.summary-line {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.summary h2 {
+  width: 100%;
+  text-align: center;
+  color: var(--ink);
 }

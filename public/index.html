@@ -8,11 +8,12 @@
 </head>
 <body>
   <main class="app">
-    <h1>Zgadnij blachy!</h1>
-    <div class="score-bar">
+    <h1 id="title">Zgadnij blachy!</h1>
+    <div class="score-bar" id="score-bar">
+      <span>Pytanie: <strong id="round">1/10</strong></span>
       <span>Punkty: <strong id="score">0</strong></span>
-      <span>Pytanie: <strong id="round">0</strong></span>
     </div>
+    <div id="quiz" class="quiz">
     <div id="plate" class="plate" aria-label="Tablica rejestracyjna">
       <div class="euroband">
         <span class="plate-stars" title="Iskro Bogów!">*</span><span class="plate-pl">|</span></div>
@@ -32,6 +33,14 @@
       <button id="next" class="btn-next" hidden>Następna tablica</button>
     </div>
     <p id="status" class="status" hidden></p>
+    </div>
+    <div id="summary" class="summary score-bar" hidden>
+      <h2>Koniec gry!</h2>
+      <p class="summary-line">Wynik: <strong id="summary-score">0</strong>/10 pkt</p>
+      <p class="summary-line">Czas: <strong id="summary-time">0</strong> s</p>
+      <p class="summary-line">Tempo: <strong id="summary-rate">0</strong> pkt/s</p>
+      <button id="restart" class="btn-next">Zagraj ponownie</button>
+    </div>
   </main>
   <script type="module" src="js/quiz.js"></script>
 </body>

@@ -2,6 +2,19 @@
 
 Quiz: patrzysz na losową tablicę rejestracyjną (wzór polski, flat) i zgadujesz, **z którego powiatu pochodzi** — wybierasz jedną z 4 odpowiedzi (poprawna siedziba + 3 trudne dystraktory).
 
+## Zasady gry
+
+- **Rozpoczyna się automatycznie** po wejściu na stronę — bez ekranu startowego.
+- **Jedna gra = 10 pytań.** Górny pasek pokazuje numer pytania (`7/10`) i liczbę punktów.
+- Po każdej odpowiedzi ekran pokazuje, czy było dobrze, a po **3 s** quiz sam przechodzi
+  do następnego pytania. Kliknięcie/tapnięcie **gdziekolwiek poza przyciskiem** „Następna
+  tablica” anuluje odliczanie — do kolejnego pytania czeka się wtedy na świadome kliknięcie.
+  (Kliknięcie samego przycisku przechodzi od razu.)
+- **Czas liczony jest tylko za moje odpowiedzi** — odliczanie między pytaniami (i czas
+  oczekiwania po jego anulowaniu) nie wlicza się do wynikowego czasu.
+- Po 10. pytaniu pojawia się **podsumowanie**: wynik punktowy, całkowity czas oraz tempo
+  (pkt/s), z przyciskiem „Zagraj ponownie” rozpoczynającym nową grę.
+
 ## Uruchomienie
 
 Strona jest w pełni statyczna (`public/`), ale używa `fetch()`, więc trzeba ją serwować przez HTTP:
@@ -93,7 +106,7 @@ public/
   style.css               # styl flat: tablica 520×114, euroband, nalepka legalizacyjna
   js/
     plate.js              # generator wyróżnika pojazdu wg §30 Dz.U. 2024 poz. 1709
-    quiz.js               # logika: ładowanie danych, pytania, punkty (localStorage)
+    quiz.js               # logika: ładowanie danych, pytania, punkty, timer 10-pytaniowej gry
   dist/
     arklatrs.ttf          # font tablic rejestracyjnych
     quiz-data.json        # JEDEN plik danych: mapa rejestracji z pełnym kompletem
