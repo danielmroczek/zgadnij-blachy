@@ -34,12 +34,14 @@
     </div>
     <p id="status" class="status" hidden></p>
     </div>
-    <div id="summary" class="summary score-bar" hidden>
+    <div id="summary" class="summary" hidden>
       <h2>Koniec gry!</h2>
-      <p class="summary-line">Wynik: <strong id="summary-score">0</strong>/10 pkt</p>
-      <p class="summary-line">Czas: <strong id="summary-time">0</strong> s</p>
-      <p class="summary-line">Tempo: <strong id="summary-rate">0</strong> pkt/s</p>
-      <button id="restart" class="btn-next">Zagraj ponownie</button>
+      <div class="summary-row">
+        <p class="summary-line">Wynik: <strong id="summary-score">0</strong>/10 pkt</p>
+        <p class="summary-line">Czas: <strong id="summary-time">0</strong> s</p>
+        <p class="summary-line">Tempo: <strong id="summary-rate">0</strong> pkt/s</p>
+        <button id="restart" class="btn-next">Zagraj ponownie</button>
+      </div>
     </div>
   </main>
   <script type="module" src="js/quiz.js"></script>

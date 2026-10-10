@@ -62,12 +62,21 @@ body {
   background: var(--bg);
   color: var(--ink);
   min-height: 100vh;
+  min-height: 100svh; /* mobilne Safari: wysokość widocznego obszaru bez paska URL */
   display: grid;
-  place-items: center;
+  touch-action: manipulation; /* tap = klik: bez 300 ms opóźnienia i zoomu dwutapowego */
 }
 
 /* atrybut [hidden] musi wygrywać z display:flex/grid ustawianym przez klasy */
 [hidden] { display: none !important; }
+
+/* wszystkie przyciski na dotykowych ekranach: szybki tap, bez zaznaczania
+   tekstu przy szybkich tapnięciach i bez systemowej szarej poświaty */
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
 
 .app {
   display: flex;
@@ -77,6 +86,9 @@ body {
   padding: 2rem 1rem;
   width: 100%;
   max-width: 640px;
+  /* bezpieczne centrowanie: margin:auto w gridzie centruje, gdy jest miejsce,
+     a przy przepełnieniu (mały ekran w poziomie) scroll działa od samej góry */
+  margin: auto;
 
   & h1 {
     font-size: 1.4rem;
@@ -239,7 +251,13 @@ body {
     text-align: left;
     transition: border-color 0.15s, background 0.15s;
 
-    &:hover:not(:disabled) { border-color: var(--blue); }
+    /* hover tylko dla urządzeń z kursorem — na dotykowych rządzi się :active,
+       inaczej efekt hover "przykleja się" po tapnięciu */
+    @media (hover: hover) {
+      &:hover:not(:disabled) { border-color: var(--blue); }
+    }
+    &:active:not(:disabled) { border-color: var(--blue); background: #eef2fb; }
+
     &:disabled { cursor: default; }
 
     &.correct { border-color: #1a9c47; background: #e6f7ec; }
@@ -258,7 +276,10 @@ body {
   color: #fff;
   cursor: pointer;
 
-  &:hover { filter: brightness(1.15); }
+  @media (hover: hover) {
+    &:hover { filter: brightness(1.15); }
+  }
+  &:active { filter: brightness(0.9); }
 }
 
 .status {
@@ -270,26 +291,44 @@ body {
 /* ---------- podsumowanie gry ---------- */
 
 .summary {
-  /* jak score-bar + dodatkowa przestrzeń pod przycisk restartu */
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2rem;
-  font-size: 0.95rem;
-  color: #555;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
   padding: 0.5rem 0;
 }
 
-.summary h2 { margin: 0 0 0.5rem; }
+.summary h2 {
+  margin: 0;
+  text-align: center;
+  color: var(--ink);
+}
+
+/* statystyki + przycisk: JEDEN deterministyczny reżim na szerokość.
+   ≥660 px: wszystko w jednym wierszu (compact metrics gwarantują, że się mieści,
+   więc nic nigdy nie spada w losowym miejscu). <660 px: kolumna — statystyki pod
+   sobą, przycisk na końcu. Zero zawijania „ile się zmieści”. */
+.summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 1rem 1.4rem;
+  padding: 0 0.5rem;
+}
 
 .summary-line {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
   color: #555;
+  white-space: nowrap; /* „Tempo: 0.02 pkt/s” nie łamie się wewnątrz wartości */
 }
 
-.summary h2 {
-  width: 100%;
-  text-align: center;
-  color: var(--ink);
+@media (max-width: 659px) {
+  .summary-row {
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .summary-row .btn-next { margin-top: 0.9rem; }
 }

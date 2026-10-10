@@ -235,10 +235,12 @@ nextBtn.addEventListener('click', () => {
   if (questionNo >= QUESTIONS_PER_GAME) endGame();
   else nextQuestion();
 });
-// klik/tap gdziekolwiek poza przyciskiem „Następna” → rezygnacja z auto-przejścia
-document.addEventListener('click', (ev) => {
+// tap/klik w dowolne miejsce poza przyciskiem „Następna” → rezygnacja z auto-przejścia.
+// pointerdown, nie click: iOS Safari w ogóle nie wysyła click przy tapnięciu
+// w nieinteraktywny element (tablicę, tło, pasek wyniku) — pointerdown odpala zawsze
+document.addEventListener('pointerdown', (ev) => {
   if (!autoTimer) return;
-  if (ev.target === nextBtn) return;
+  if (ev.target instanceof Element && ev.target.closest('#next')) return;
   cancelAutoNext();
   pauseStart = 0;
 });
