@@ -96,9 +96,31 @@ function endGame() {
   quizEl.hidden = true;
   summaryEl.hidden = false;
   summaryScoreEl.textContent = score;
-  summaryTimeEl.textContent = elapsed.toFixed(1);
-  summaryRateEl.textContent = (score / elapsed).toFixed(2);
+  summaryTimeEl.textContent = formatTime(elapsed);
+  summaryRateEl.textContent = formatRate(score, elapsed);
   restartBtn.focus();
+}
+
+// <1 min -> "42,3 s", <1 h -> "2:07", dalej -> "1:05:32" (bez jednostek wyżej)
+function formatTime(seconds) {
+  const total = Math.floor(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n) => String(n).padStart(2, '0');
+  if (h > 0) return `${h}:${pad(m)}:${pad(s)}`;
+  if (total >= 60) return `${m}:${pad(s)}`;
+  return `${seconds.toFixed(1).replace('.', ',')} s`;
+}
+
+// < 0,1 pkt/s → pkt/min; < 0,1 pkt/min → pkt/godz.; inaczej pkt/s
+function formatRate(punkty, seconds) {
+  const perSecond = punkty / Math.max(seconds, 1e-9);
+  const perMinute = perSecond * 60;
+  const perHour = perSecond * 3600;
+  if (perMinute < 0.1) return `${perHour.toFixed(1).replace('.', ',')} pkt/godz.`;
+  if (perSecond < 0.1) return `${perMinute.toFixed(1).replace('.', ',')} pkt/min`;
+  return `${perSecond.toFixed(2).replace('.', ',')} pkt/s`;
 }
 
 function nextQuestion() {
