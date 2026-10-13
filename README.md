@@ -129,6 +129,10 @@ CONTEXT.md                # glosariusz (język wspólny projektu)
 
 - Litery: `ACEFGHJKLMPRSTUWXY` (bez wykluczonych §31: B, D, I, O, Z).
 - Wzory wyróżnika pojazdu wg §30: dla wyróżnika 2-literowego wzory 4-znakowe, dla 3-literowego — 5-znakowe (np. `2L+5C`, `3L+3C,2L`), w tym odmiana `3L+5C` (rys. 9, wiersz 12).
+
+- Losowanie wyróżnika POWIATU jest równomierne; wzór wyróżnika POJAZDU
+  (odmiana tablicy) losowany jest WAŻONE — konfiguracja w `PATTERN_WEIGHTS`
+  w `plate.js` (waga = „ile razy częściej niż wzór z wagą 1", brak wpisu = 1).
 - Tablica jednorzędowa standardowa: proporcje 520:114 (Załącznik 12).
 - Nalepka legalizacyjna ma „benzynowy” gradient hologramu, pozycja liczona z długości wyróżnika powiatu.
 - Odmiany 8-znakowe (`3L+5C`, `3L+4C,1L`, `3L+3C,2L` — rys. 9, wiersze 12–14) renderowane są ze zmniejszonymi odstępami proporcjonalnymi do deficytu szerokości (tab. odmian: b 12→8, c 40→35) — CSS w `style.css` pod `[data-variant=…]`.
