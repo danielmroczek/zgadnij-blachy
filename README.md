@@ -17,7 +17,12 @@ Quiz: patrzysz na losową tablicę rejestracyjną (wzór polski, flat) i zgaduje
 
 ## Uruchomienie
 
-Strona jest w pełni statyczna (`public/`), ale używa `fetch()`, więc trzeba ją serwować przez HTTP:
+Strona jest w pełni statyczna (`public/`), bez build stepu. Frontend oparty jest o
+[Alpine.js](https://alpinejs.dev) ładowany prosto z CDN (w `index.html`, `defer`,
+wariant `cdn.min.js`) — logika UI żyje w komponencie `Alpine.data('quiz', …)`
+zadeklarowanym w `public/js/quiz.js` (moduł ES, ładowany **przed** skryptem CDN,
+żeby przez `alpine:init` zdążył się zarejestrować). Aplikacja używa `fetch()`,
+więc trzeba ją serwować przez HTTP:
 
 ```bash
 npx serve public
@@ -106,7 +111,7 @@ public/
   style.css               # styl flat: tablica 520×114, euroband, nalepka legalizacyjna
   js/
     plate.js              # generator wyróżnika pojazdu wg §30 Dz.U. 2024 poz. 1709
-    quiz.js               # logika: ładowanie danych, pytania, punkty, timer 10-pytaniowej gry
+    quiz.js               # komponent Alpine.data('quiz'): stan, pytania, punkty, timer gry
   dist/
     arklatrs.ttf          # font tablic rejestracyjnych
     quiz-data.json        # JEDEN plik danych: mapa rejestracji z pełnym kompletem

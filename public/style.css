@@ -70,6 +70,9 @@ body {
 /* atrybut [hidden] musi wygrywać z display:flex/grid ustawianym przez klasy */
 [hidden] { display: none !important; }
 
+/* Alpine: ukrywaj elementy z x-cloak dopóki Alpine się nie zainicjuje */
+[x-cloak] { display: none !important; }
+
 /* wszystkie przyciski na dotykowych ekranach: szybki tap, bez zaznaczania
    tekstu przy szybkich tapnięciach i bez systemowej szarej poświaty */
 button {

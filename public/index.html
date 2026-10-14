@@ -19,44 +19,51 @@
   <meta name="twitter:title" content="Zgadnij blachy!">
   <meta name="twitter:description" content="Quiz o polskich tablicach rejestracyjnych: widzisz kod (np. DW), zgadujesz powiat. 10 pytań — zagraj i pobij swój rekord!">
 </head>
-<body>
+<body x-data="quiz" @pointerdown="onPointerDown($event)">
   <main class="app">
-    <h1 id="title">Zgadnij blachy!</h1>
-    <div class="score-bar" id="score-bar">
-      <span>Pytanie: <strong id="round">1/10</strong></span>
-      <span>Punkty: <strong id="score">0</strong></span>
+    <h1 id="title" x-show="phase === 'quiz'">Zgadnij blachy!</h1>
+    <div class="score-bar" id="score-bar" x-show="phase === 'quiz'">
+      <span>Pytanie: <strong x-text="roundLabel">1/10</strong></span>
+      <span>Punkty: <strong x-text="score">0</strong></span>
     </div>
-    <div id="quiz" class="quiz">
-    <div id="plate" class="plate" aria-label="Tablica rejestracyjna">
-      <div class="euroband">
-        <span class="plate-stars" title="Iskro Bogów!">*</span><span class="plate-pl">|</span></div>
-      <div class="plate-chars">
-        <span class="plate-prefix"></span>
-        <div class="plate-sticker" title="Nalepka legalizacyjna"></div>
-        <span class="plate-suffix"></span>
+    <p x-show="loading">Ładowanie danych…</p>
+    <p x-show="error" x-text="error" class="status"></p>
+    <div id="quiz" class="quiz" x-show="phase === 'quiz'">
+      <div id="plate" class="plate" aria-label="Tablica rejestracyjna" :data-variant="variant">
+        <div class="euroband">
+          <span class="plate-stars" title="Iskro Bogów!">*</span><span class="plate-pl">|</span>
+        </div>
+        <div class="plate-chars">
+          <span class="plate-prefix" x-text="prefix"></span>
+          <div class="plate-sticker" title="Nalepka legalizacyjna"></div>
+          <span class="plate-suffix" x-text="suffix"></span>
+        </div>
       </div>
+      <div id="answers" class="answers">
+        <template x-for="(opt, i) in options" :key="i">
+          <button class="answer" :class="opt.state" :disabled="locked"
+                  @click="onAnswer(i)" x-text="opt.text"></button>
+        </template>
+      </div>
+      <div class="actions">
+        <button id="next" class="btn-next" x-ref="next" x-show="showNext"
+                @click="onNext()"
+                x-text="remaining === null ? nextButtonLabel : `${nextButtonLabel} (${remaining})`"
+                x-cloak></button>
+      </div>
+      <p id="status" class="status" x-show="status" x-text="status"></p>
     </div>
-    <div id="answers" class="answers">
-      <button class="answer" data-index="0"></button>
-      <button class="answer" data-index="1"></button>
-      <button class="answer" data-index="2"></button>
-      <button class="answer" data-index="3"></button>
-    </div>
-    <div class="actions">
-      <button id="next" class="btn-next" hidden>Następna tablica</button>
-    </div>
-    <p id="status" class="status" hidden></p>
-    </div>
-    <div id="summary" class="summary" hidden>
+    <div id="summary" class="summary" x-show="phase === 'summary'">
       <h2>Koniec gry!</h2>
       <div class="summary-row">
-        <p class="summary-line">Wynik: <strong id="summary-score">0</strong>/10 pkt</p>
-        <p class="summary-line">Czas: <strong id="summary-time">0 s</strong></p>
-        <p class="summary-line">Tempo: <strong id="summary-rate">0</strong></p>
+        <p class="summary-line">Wynik: <strong x-text="summaryScore"></strong>/10 pkt</p>
+        <p class="summary-line">Czas: <strong x-text="summaryTime"></strong></p>
+        <p class="summary-line">Tempo: <strong x-text="summaryRate"></strong></p>
       </div>
-      <button id="restart" class="btn-next">Zagraj ponownie</button>
+      <button id="restart" class="btn-next" x-ref="restart" @click="startGame()">Zagraj ponownie</button>
     </div>
   </main>
   <script type="module" src="js/quiz.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>
