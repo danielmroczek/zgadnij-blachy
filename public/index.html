@@ -39,6 +39,8 @@
           <span class="plate-suffix" x-text="suffix"></span>
         </div>
       </div>
+      <p class="wojewodztwo" :class="{ visible: showWojewodztwo }"
+         x-text="wojewodztwo ? `Województwo: ${wojewodztwo}` : ' '" x-cloak></p>
       <div id="answers" class="answers">
         <template x-for="(opt, i) in options" :key="i">
           <button class="answer" :class="opt.state" :disabled="locked"

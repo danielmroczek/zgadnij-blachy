@@ -233,6 +233,23 @@ button {
 
 /* ---------- odpowiedzi ---------- */
 
+.wojewodztwo {
+  /* element zawsze zajmuje swój place w layoucie (rezerwacja miejsca pod tablicą),
+     tekst pojawia się wyłącznie przez opacity — zero przemieszczania reszty strony;
+     ujemny margin-top: element siedzi blisko tablicy (gap .quiz liczy się od tej linii) */
+  margin: -1.5rem 0 -.5rem;
+  min-height: 1.4em;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s ease-in;
+
+  &.visible { opacity: 1; }
+}
+
 .answers {
   display: grid;
   grid-template-columns: 1fr;

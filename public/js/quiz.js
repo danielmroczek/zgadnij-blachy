@@ -37,6 +37,8 @@ document.addEventListener('alpine:init', () => {
     status: '',
     remaining: null,           // sekundy do auto-przejścia (null = nie liczy)
     showNext: false,
+    wojewodztwo: '',          // województwo bieżącej tablicy — widoczne dopiero po odpowiedzi
+    showWojewodztwo: false,
     // podsumowanie
     summaryScore: 0,
     summaryTime: '',
@@ -51,7 +53,7 @@ document.addEventListener('alpine:init', () => {
         data.powiatyByName = Object.fromEntries(
           Object.values(json.rejestracje)
             .filter((r) => r.siedziba)
-            .map((r) => [r.nazwa, { siedziba: r.siedziba, typ: r.typ }])
+            .map((r) => [r.nazwa, { siedziba: r.siedziba, typ: r.typ, wojewodztwo: r.wojewodztwo }])
         );
 
         // domyślnie pomijamy tablice "dodatkowe" (2. litera województwa);
@@ -63,6 +65,7 @@ document.addEventListener('alpine:init', () => {
           .map(([code, v]) => ({
             code,
             nazwa: v.nazwa,
+            wojewodztwo: v.wojewodztwo,
             propozycje: v.propozycje ?? [],
           }));
         this.startGame();
@@ -159,6 +162,8 @@ document.addEventListener('alpine:init', () => {
       this.variant = odmiana;
       this.prefix = entry.code;
       this.suffix = suffix;
+      this.wojewodztwo = entry.wojewodztwo;
+      this.showWojewodztwo = false;
       this.showNext = false;
       this.status = '';
     },
@@ -180,6 +185,7 @@ document.addEventListener('alpine:init', () => {
 
       if (isCorrect) this.score += 1;
       this.status = isCorrect ? '✅ Dobrze!' : '❌ Źle.';
+      this.showWojewodztwo = true; // ujawnij województwo bieżącej tablicy
 
       this.showNext = true;
       this.focusNext();
