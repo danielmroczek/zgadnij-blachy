@@ -96,8 +96,14 @@ tego samego powiatu dane się powtarzają, to zamierzona redundancja):
       "akt": "Dz.U. 2024 poz. 1709",    // akt, w którym kod pierwszy raz się pojawił
                                         //   (nowelizacja, jeśli kod został dodany później)
       "siedziba": "Mińsk Mazowiecki", "typ": "powiat",
-      // typ: "powiat" | "miasto" (miasto na prawach powiatu)
+      // typ: "powiat" | "miasto" (miasto na prawach powiatu) | "służba"
       "propozycje": ["makowski", ...]   // proponowane odpowiedzi (dystraktory)
+    },
+    "HP": {
+      "nazwa": "Policji", "typ": "służba",
+      "dodatkowe": true,                // tablice służbowe — wykluczone z quizu
+      "akt": "Dz.U. 2025 poz. 1326"
+      // brak wojewodztwo/siedziba/propozycje — służby nie mają powiatu
     }
   }
 }
@@ -122,6 +128,8 @@ script/                   # skrypty Node
     rejestracje.js        # wyróżniki ze stałego URL ELI (Dz.U. 2024 poz. 1709)
     nowelizacje.js        # automat: PDF-y aktów zmieniających -> kody zał. 13
     siedziby.js           # siedziby z Bazy JST (MSWiA) + walidacja 314+66=380
+    sluzby.js             # tablice służbowe (ELI: DU/2023/1776, DU/2023/1777,
+                          #   DU/2025/1326) — typ 'służba', dodatkowe: true
     odpowiedzi.js         # proponowane odpowiedzi (dystraktory) per kod
     quiz-data.js          # skleja dane i zapisuje quiz-data.json
   download-font.js        # pobiera font (zip) do dist/; URL z env FONT_URL
