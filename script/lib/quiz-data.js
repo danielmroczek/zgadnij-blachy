@@ -4,8 +4,9 @@
 // Struktura:
 // {
 //   meta: { wygenerowano, liczby: {...}, zrodla: {...} },
-//   rejestracje:   { kod: { nazwa, wojewodztwo, typ?, dodatkowe?,
-//                          siedziba?, propozycje: [nazwy powiatów] } }
+//   rejestracje:   { kod: { nazwa, wojewodztwo?, typ?, dodatkowe?,
+//                          siedziba?, propozycje?/propozycje: [...] } }
+//   // kody służbowe (HP, UA, HM...): typ 'służba', wojewodztwo/siedziba/propozycje — brak
 // }
 
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -14,6 +15,7 @@ import { dirname, join } from 'node:path';
 import { fetchRejestracje } from './rejestracje.js';
 import { loadSiedziby, BAZA_JST_URL } from './siedziby.js';
 import { buildOdpowiedzi } from './odpowiedzi.js';
+import { fetchSluzby } from './sluzby.js';
 
 const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const DIST = join(root, 'public', 'dist');
@@ -22,14 +24,22 @@ const DEFAULT_OUTPUT = join(DIST, 'quiz-data.json');
 
 export async function buildQuizData({ top = 5, output = DEFAULT_OUTPUT } = {}) {
 
-  console.log('=== 1/3 Rejestracje (ELI API) ===');
+  console.log('=== 1/4 Rejestracje (ELI API) ===');
   const { meta: metaRej, rejestracje } = await fetchRejestracje();
 
-  console.log('=== 2/3 Siedziby powiatów (Baza JST MSWiA) ===');
+  console.log('=== 2/4 Siedziby powiatów (Baza JST MSWiA) ===');
   const powiaty = await loadSiedziby();
 
-  console.log('=== 3/3 Proponowane odpowiedzi ===');
-  const odpowiedzi = buildOdpowiedzi(rejestracje, powiaty, top);
+  console.log('=== 3/4 Tablice służbowe (ELI API) ===');
+  const { meta: metaSluzby, sluzby } = await fetchSluzby();
+  Object.assign(rejestracje, sluzby); // typ 'służba', dodatkowe: true — bez wojewodztwa/siedziby
+
+  console.log('=== 4/4 Proponowane odpowiedzi ===');
+  // dystraktory tylko dla kodów powiatowych — służby nie mają powiatu/wojewodztwa
+  const powiatoweKody = Object.fromEntries(
+    Object.entries(rejestracje).filter(([, rej]) => rej.typ !== 'służba')
+  );
+  const odpowiedzi = buildOdpowiedzi(powiatoweKody, powiaty, top);
   // odpowiedzi i siedziby mają te same klucze co rejestracje (nazwa powiatu) —
   // wszystko trafia bezpośrednio do wpisu kodu (dane są zduplikowane między
   // kodami tego samego powiatu, ale plik pozostaje płaski i samowystarczalny)
@@ -43,6 +53,8 @@ export async function buildQuizData({ top = 5, output = DEFAULT_OUTPUT } = {}) {
   }
 
   for (const [kod, rej] of Object.entries(rejestracje)) {
+    // służby (typ 'służba') nie mają powiatu — idą dalej bez siedziby/typu powiatowego
+    if (rej.typ === 'służba') continue;
     const p = siedzibaByKlucz.get(klucz(rej.wojewodztwo, rej.nazwa));
     if (!p) {
       console.warn(`⚠ ${kod}: brak siedziby dla "${rej.nazwa}" (${rej.wojewodztwo}) — wpis bez siedziba/typ`);
@@ -59,6 +71,7 @@ export async function buildQuizData({ top = 5, output = DEFAULT_OUTPUT } = {}) {
         kodyRejestracji: Object.keys(rejestracje).length,
         powiaty: powiaty.length,
         dodatkowe: Object.values(rejestracje).filter((r) => r.dodatkowe).length,
+        sluzbowe: Object.values(rejestracje).filter((r) => r.typ === 'służba').length,
       },
       zrodla: {
         rejestracje: { ...metaRej.dokument },
@@ -66,6 +79,7 @@ export async function buildQuizData({ top = 5, output = DEFAULT_OUTPUT } = {}) {
           opis: 'Baza JST (MSWiA) — baza teleadresowa jednostek samorządu terytorialnego: powiaty (typ P) i miasta na prawach powiatu (MNP), siedziba = miejscowość urzędu',
           link: BAZA_JST_URL,
         },
+        sluzbowe: metaSluzby,
       },
     },
     rejestracje,
@@ -73,6 +87,6 @@ export async function buildQuizData({ top = 5, output = DEFAULT_OUTPUT } = {}) {
 
   mkdirSync(dirname(output), { recursive: true });
   writeFileSync(output, JSON.stringify(data, null, 2) + '\n');
-  console.log(`Zapisano: ${output} (${Object.keys(rejestracje).length} kodów, ${powiaty.length} powiatów)`);
+  console.log(`Zapisano: ${output} (${Object.keys(rejestracje).length} kodów, ${powiaty.length} powiatów, ${Object.keys(sluzby).length} służbowych)`);
   return output;
 }
