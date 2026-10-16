@@ -57,11 +57,13 @@ document.addEventListener('alpine:init', () => {
         );
 
         // domyślnie pomijamy tablice "dodatkowe" (2. litera województwa);
-        // przełącznik w ustawieniach połączy je z powrotem z pulą
+        // przełącznik w ustawieniach połączy je z powrotem z pulą.
+        // Tablice służbowe (typ 'służba') są wykluczone ZAWSZE — nie mają
+        // powiatu ani propozycji, więc nie nadają się do pytania.
         const uwzglednijDodatkowe =
           localStorage.getItem('zgadnij-blachy:dodatkowe') === '1';
         data.pool = Object.entries(json.rejestracje)
-          .filter(([, v]) => uwzglednijDodatkowe || !v.dodatkowe)
+          .filter(([, v]) => v.typ !== 'służba' && (uwzglednijDodatkowe || !v.dodatkowe))
           .map(([code, v]) => ({
             code,
             nazwa: v.nazwa,
