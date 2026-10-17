@@ -245,9 +245,12 @@ button {
   color: var(--blue);
   text-align: center;
   opacity: 0;
-  transition: opacity 0.2s ease-in;
+  /* fade-in tylko przy pokazywaniu: przy ukrywaniu (nowe pytanie) tekst znika
+     natychmiast — inaczej przez 0.2 s widać województwo nowej tablicy i przecieka
+     zgadywaczowi podpowiedź */
+  transition: none;
 
-  &.visible { opacity: 1; }
+  &.visible { opacity: 1; transition: opacity 0.2s ease-in; }
 }
 
 .answers {
