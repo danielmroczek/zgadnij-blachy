@@ -48,12 +48,26 @@
         </template>
       </div>
       <div class="actions">
-        <button id="next" class="btn-next" x-ref="next" x-show="showNext"
+        <!-- KANONICZNY komentarz niezmiennika stałej szerokości przycisku: sizer
+             niesie najdłuższą możliwą etykietę, a #next (.btn-next) rozciąga się
+             do jego szerokości (grid-area 1/1, patrz .actions w style.css).
+             TRZYMAĆ W SYNCHU z public/js/quiz.js — gdy zmienisz:
+             · nextButtonLabel („Następna tablica” / „Pokaż wynik”) —
+               zaktualizuj tekst sizer, jeśli nowa etykieta jest dłuższa;
+             · AUTO_NEXT_MS (3000 → N sekund) — zaktualizuj licznik „(3)”
+               (najdłuższa etykieta odliczania = „(N)”; ostatnie pytanie nie
+               odlicza, więc „(N)” > „Pokaż wynik” dla N ≥ 2).
+             Sizer musi być <button> (nie span) — identyczne metryki tekstu
+             co do piksela; tabular-nums wyrównuje cyfry odliczania. -->
+        <button type="button" class="btn-next btn-next-sizer" tabindex="-1" disabled
+                aria-hidden="true">Następna tablica (3)</button>
+        <button id="next" class="btn-next" x-ref="next"
+                :class="{ 'btn-next-hidden': !showNext }" :disabled="!showNext"
                 @click="onNext()"
                 x-text="remaining === null ? nextButtonLabel : `${nextButtonLabel} (${remaining})`"
                 x-cloak></button>
       </div>
-      <p id="status" class="status" x-show="status" x-text="status"></p>
+      <p id="status" class="status" x-text="status"></p>
     </div>
     <div id="summary" class="summary" x-show="phase === 'summary'" x-cloak>
       <h2>Koniec gry!</h2>

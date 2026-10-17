@@ -290,6 +290,10 @@ button {
 
 /* ---------- reszta ---------- */
 
+/* przycisk „Następna” — zawsze w layoucie, ukrywany przez visibility: miejsce
+   po odpowiedzi jest zarezerwowane zawsze, więc reszta strony nie podskakuje;
+   niezmiennik stałej szerokości (sizer + tabular-nums) — patrz kanoniczny
+   komentarz przy sizerze w index.html (zależność od quiz.js) */
 .btn-next {
   padding: 0.7rem 1.6rem;
   font-size: 1rem;
@@ -303,6 +307,31 @@ button {
     &:hover { filter: brightness(1.15); }
   }
   &:active { filter: brightness(0.9); }
+
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-next-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* sizer + przycisk w tej samej komórce gridu — szczegóły niezmiennika stałej
+   szerokości są wyjaśnione w kanonicznym komentarzu przy sizerze w index.html,
+   żeby żyły obok tekstu, który trzeba z nimi synchronizować */
+.actions {
+  display: grid;
+}
+
+.btn-next-sizer {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.btn-next {
+  grid-area: 1 / 1;
 }
 
 .status {
