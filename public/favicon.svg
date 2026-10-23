@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+
+  <metadata xmlns:fc="https://danielmroczek.github.io/favicon-creator">
+    <fc:iconFamily>lucide</fc:iconFamily>
+    <fc:iconName>car-battery</fc:iconName>
+    <fc:gradientStart>#0288d1</fc:gradientStart>
+    <fc:gradientEnd>#1a237e</fc:gradientEnd>
+    <fc:iconColor>#ffffff</fc:iconColor>
+    <fc:iconSize>21</fc:iconSize>
+  </metadata>
+
+  <defs>
+    <linearGradient id="gradient" x1="15%" y1="15%" x2="85%" y2="85%">
+      <stop stop-color="#0288d1"/>
+      <stop offset="1" stop-color="#1a237e"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="32" height="32" rx="4" fill="url(#gradient)"/>
+
+  <path id="icon" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M18.1 17.05h4.2M20.2 19.15v-4.2M22.3 8.65v2.1M9.7 17.05h4.2M9.7 8.65v2.1M5.5 10.75H26.5V23.35H5.5Z"/>
+
+</svg>
