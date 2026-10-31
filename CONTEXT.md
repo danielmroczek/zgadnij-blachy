@@ -43,6 +43,12 @@ rejestracji wg podobieństwa wyróżnika powiatu do siedziby
 (`quiz-data.json` → `rejestracje[kod].propozycje`).
 _Avoid_: błędna odpowiedź, fałszywa
 
+**Ocena opisowa**:
+Krótka (1–2 zdania) sympatyczna wiadomość na ekranie podsumowania, dobitna do
+liczby zdobytych punktów; wybierana z puli wariantów per wynik (nie zależy od
+czasu ani tempa).
+_Avoid_: komentarz, feedback, ocena końcowa
+
 **Strategia prefiksowa**:
 Funkcja trudności dystraktora: punkty za litery wyróżnika powiatu obecne w siedzibie
 (trafienie, pozycja 0, zgodna pozycja), bonus za wspólny prefiks i województwo.

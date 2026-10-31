@@ -12,8 +12,10 @@ Quiz: patrzysz na losową tablicę rejestracyjną (wzór polski, flat) i zgaduje
   (Kliknięcie samego przycisku przechodzi od razu.)
 - **Czas liczony jest tylko za moje odpowiedzi** — odliczanie między pytaniami (i czas
   oczekiwania po jego anulowaniu) nie wlicza się do wynikowego czasu.
-- Po 10. pytaniu pojawia się **podsumowanie**: wynik punktowy, całkowity czas oraz tempo
-  (pkt/s), z przyciskiem „Zagraj ponownie” rozpoczynającym nową grę.
+- Po 10. pytaniu pojawia się **podsumowanie**: duży wynik punktowy (X/10),
+  **ocena opisowa** — krótka, sympatyczna wiadomość dobrana do liczby punktów,
+  całkowity czas oraz tempo (pkt/s), z przyciskiem „Zagraj ponownie”
+  rozpoczynającym nową grę.
 
 ## Uruchomienie
 
@@ -38,8 +40,9 @@ Pipeline CI: `.github/workflows/deploy.yml`. Przy każdym pushu na `main`
 (uruchamia się też ręcznie z zakładki *Actions* → *Run workflow*):
 
 1. `npm run prepare-data` — generuje `public/dist/quiz-data.json`,
-2. `npm run download:font` — pobiera font z adresu podanego w **sekrecie `FONT_URL`**,
-3. publikuje katalog `public/` na GitHub Pages.
+2. `npm run encode-verdicts` — koduje oceny opisowe do `public/js/verdicts-data.js`,
+3. `npm run download:font` — pobiera font z adresu podanego w **sekrecie `FONT_URL`**,
+4. publikuje katalog `public/` na GitHub Pages.
 
 — Zasoby (JSON, font) ładowane są ścieżkami względnymi — strona działa zarówno
 pod `https://<user>.github.io/<repo>/`, jak i w root domeny, bez konfiguracji.
@@ -118,6 +121,7 @@ public/
   js/
     plate.js              # generator wyróżnika pojazdu wg §30 Dz.U. 2024 poz. 1709
     quiz.js               # komponent Alpine.data('quiz'): stan, pytania, punkty, timer gry
+    verdicts-data.js      # WYGENEROWANY: zaszyfrowane oceny opisowe (nie edytować)
   dist/
     arklatrs.ttf          # font tablic rejestracyjnych
     quiz-data.json        # JEDEN plik danych: mapa rejestracji z pełnym kompletem
@@ -134,6 +138,8 @@ script/                   # skrypty Node
     quiz-data.js          # skleja dane i zapisuje quiz-data.json
   download-font.js        # pobiera font (zip) do dist/; URL z env FONT_URL
                           #   ("npm run download:font", przez dotenv-cli z pliku .env)
+  encode-verdicts.js      # koduje script/lib/verdicts.js -> public/js/verdicts-data.js
+                          #   ("npm run encode-verdicts")
 tmp/                      # prototypy (m.in. render tablicy w PIL)
 CONTEXT.md                # glosariusz (język wspólny projektu)
 ```
@@ -169,3 +175,25 @@ w danych i quizie występuje po prostu „Warszawa” (jak każde miasto na praw
 ## Znane ograniczenia
 
 - Punkty trzymane w `localStorage` pod kluczem `pg-score`.
+
+## Oceny opisowe (`script/lib/verdicts.js`)
+
+Na ekranie podsumowania, pod wynikiem, pojawia się krótka (1–2 zdania) sympatyczna
+wiadomość dobrana **wyłącznie do liczby zdobytych punktów** (nie zależy od czasu
+ani tempa). Dla każdego progu 0–10 przygotowane są **3 warianty**, z których quiz
+losuje jeden na koniec gry.
+
+Teksty edytują się **bezpośrednio w `script/lib/verdicts.js`** (zwykła polski tekst —
+tu jest źródło prawdy). Plik `public/js/verdicts-data.js`, z którego korzysta
+przeglądarka, jest artefaktem: teksty są zaszyfrowane (XOR kluczem
+`zgadnij-blachy` + Base64) i samodekodowane w przeglądarce, żeby teksty nie leżały
+otwarcie w kodzie strony. Po każdej zmianie uruchom:
+
+```bash
+npm run encode-verdicts
+```
+
+CI robi to samo przed deployem, więc wystarczy zacommitować zmianę w
+`script/lib/verdicts.js`. Wygenerowany `public/js/verdicts-data.js` też jest
+commitowany (strona działa wtedy od razu po sklonowaniu, bez uruchamiania
+skryptów), a CI nadpisuje go świeżą wersją przy każdym deploju.
