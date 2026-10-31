@@ -35,6 +35,9 @@ jobs:
       - name: Generowanie danych quizu
         run: npm run prepare-data
 
+      - name: Kodowanie ocen opisowych
+        run: npm run encode-verdicts
+
       - name: Pobieranie czcionki
         env:
           FONT_URL: ${{ secrets.FONT_URL }}

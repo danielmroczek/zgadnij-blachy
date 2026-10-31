@@ -7,6 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare-data": "node ./script/prepare-data.js",
+    "encode-verdicts": "node ./script/encode-verdicts.js",
     "download:font": "npx dotenv-cli -e .env -- node ./script/download-font.js"
   },
   "keywords": [],
