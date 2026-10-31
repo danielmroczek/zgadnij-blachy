@@ -10,6 +10,10 @@ Quiz: patrzysz na losową tablicę rejestracyjną (wzór polski, flat) i zgaduje
   do następnego pytania. Kliknięcie/tapnięcie **gdziekolwiek poza przyciskiem** „Następna
   tablica” anuluje odliczanie — do kolejnego pytania czeka się wtedy na świadome kliknięcie.
   (Kliknięcie samego przycisku przechodzi od razu.)
+- Po odpowiedzi **każda karta odpowiada dodatkowo województwem**, z którego pochodzi
+  dana miejscowość/powiat (mała szara etykieta pod tekstem odpowiedzi) — przy okazji
+  można się uczyć geografii Polski. Przed odpowiedzią województwa są ukryte, żeby nie
+  podpowiadały właściwej odpowiedzi.
 - **Czas liczony jest tylko za moje odpowiedzi** — odliczanie między pytaniami (i czas
   oczekiwania po jego anulowaniu) nie wlicza się do wynikowego czasu.
 - Po 10. pytaniu pojawia się **podsumowanie**: duży wynik punktowy (X/10),
@@ -128,6 +132,10 @@ public/
 script/                   # skrypty Node
   prepare-data.js         # główny skrypt: generuje public/dist/quiz-data.json
                           #   ("npm run prepare-data"; --top/--out)
+  probe-odpowiedzi.js     # jednorazowy probe stałej wysokości pól odpowiedzi:
+                          #   liczy linie wszystkich 370 etykiet (Playwright +
+                          #   canvas.measureText) przy najgorszych layoutach i
+                          #   weryfikuje limit 2 linii z style.css (.answer min-height)
   lib/
     rejestracje.js        # wyróżniki ze stałego URL ELI (Dz.U. 2024 poz. 1709)
     nowelizacje.js        # automat: PDF-y aktów zmieniających -> kody zał. 13

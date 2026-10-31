@@ -9,12 +9,12 @@
   --answer-border: #c8ccd4;
 
   /* --- tablica: wymiary z zał. 12 Dz.U. 2024 poz. 1709 --- */
-  /* 100vw obejmuje scrollbar; .app ma 16 px paddingu z każdej strony.
-     Tablica ma być tak szeroka jak .answer (100% .app = 100vw − 32 px),
-     ale tylko na wąskich ekranach — powyżej tej szerokości limit 520 px
-     wychodzi na wierzch; rezerwujemy dodatkowe 32 px, by scrollbar
+  /* 100vw obejmuje scrollbar; .app ma 1rem paddingu z każdej strony.
+     Tablica ma być tak szeroka jak .answer (100% .app = 100vw − 2rem),
+     ale tylko na wąskich ekranach — powyżej tej szerokości limit 32.5rem
+     wychodzi na wierzch; rezerwujemy dodatkowe 2rem, by scrollbar
      nigdy nie wypchnął layoutu w poziomy scroll */
-  --plate-w: min(calc(100vw - 32px), 520px);
+  --plate-w: min(calc(100vw - 2rem), 32.5rem);
   --plate-h: calc(var(--plate-w) * 114 / 520); /* aspect 260:57 — tablica 520×114 mm (rys. 7) */
 
   /* Skala: 1 mm tablicy = var(--plate-w) / 520 */
@@ -88,7 +88,7 @@ button {
   gap: 1.25rem;
   padding: 2rem 1rem;
   width: 100%;
-  max-width: 640px;
+  max-width: 40rem;
   /* bezpieczne centrowanie: margin:auto w gridzie centruje, gdy jest miejsce,
      a przy przepełnieniu (mały ekran w poziomie) scroll działa od samej góry */
   margin: auto;
@@ -260,15 +260,15 @@ button {
   width: 100%;
 
   /* szersze ekrany: siatka 2×2 */
-  @media (min-width: 480px) {
+  @media (min-width: 30rem) {
     grid-template-columns: 1fr 1fr;
   }
 
   & .answer {
-    padding: 0.9rem 1rem;
+    padding: .5rem 1rem;
     font-size: 1rem;
-    border: 2px solid var(--answer-border);
-    border-radius: 10px;
+    border: 0.1rem solid var(--answer-border);
+    border-radius: 0.6rem;
     background: var(--plate-bg);
     cursor: pointer;
     text-align: left;
@@ -286,6 +286,49 @@ button {
     &.correct { border-color: #1a9c47; background: #e6f7ec; }
     &.wrong { border-color: #cc3344; background: #fdecef; }
   }
+
+  & .answer-woj {
+    /* etykieta województwa — odsłaniana po odpowiedzi (nauka geografii).
+       Element zawsze obecny w layoucie, treść przez opacity (zero
+       przemieszczania — ta sama technika co .wojewodztwo). Mniejszy font
+       i jasny szary: waga wizualna niższa niż etykieta odpowiedzi. */
+    display: block;
+    min-height: 1em;   /* rezerwacja jednej linii — karta nie rośnie po odsłonięciu */
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #8a8f98;
+    opacity: 0;
+    transition: none;
+  }
+
+  /* pokazuj województwa dopiero po odpowiedzi (.revealed = locked z quiz.js;
+   alternatywa :has(.answer:disabled) odpada — sprawdzona, nie działa w tym
+   Chrome) — odsłonięcie poprzedzone fade-inem, ukrycie natychmiastowe
+   (nowe pytanie) */
+  &.revealed .answer-woj { opacity: 1; transition: opacity 0.3s ease-in; }
+}
+
+/* ---------- stała wysokość pola odpowiedzi (probe: script/probe-odpowiedzi.js) ----------
+   Wszystkie pola mają tę samą wysokość niezależnie od długości etykiety — layout nie
+   podskakuje między pytaniami. Limit = 3 linie tekstu + padding pionowy: probe wykazał,
+   że najdłuższa etykieta („Strzelce Krajeńskie (p. strzelecko-drezdenecki)”) mieści się
+   w 2 liniach przy najwęższej kolumnie (320 px, telefon; grid 2×2 przy 480 px — 214 px),
+   a trzecia linia to etykieta województwa (.answer-woj).
+   Gdy dane się zmienią (nowe powiaty/dystraktory) i etykiety urosną, uruchom ponownie
+   probe: node script/probe-odpowiedzi.js — napisze, czy 2 linie nadal wystarczają. */
+
+@supports (min-height: 1px) {
+  .answer {
+    /* 3 linie × line-height normalny (~1.2 em) + pady 0.5rem × 2 (realny
+       padding .answer) + 0.2rem = 2 × obramowanie 0.1rem.
+       Kompromis: padding liczony z REALNEGO pada 0.5rem — 78px zamiast 90px.
+       Gdyby etykiety kiedyś urosły do 3 linii, zwiększ mnożnik linii. */
+    min-height: calc(3 * 1.2em + 0.5rem * 2 + 0.2rem);
+    display: grid;           /* kontekst dla align-content (button domyślnie nie ma) */
+    align-content: center;   /* zawartość wyśrodkowana pionowo w stałej wysokości */
+  }
 }
 
 /* ---------- reszta ---------- */
@@ -298,7 +341,7 @@ button {
   padding: 0.7rem 1.6rem;
   font-size: 1rem;
   border: none;
-  border-radius: 10px;
+  border-radius: 0.6rem;
   background: var(--blue);
   color: #fff;
   cursor: pointer;
@@ -413,7 +456,7 @@ button {
   white-space: nowrap; /* „Tempo: 0.02 pkt/s” nie łamie się wewnątrz wartości */
 }
 
-@media (max-width: 659px) {
+@media (max-width: 41.2rem) {
   .summary-row {
     flex-direction: column;
     gap: 0.55rem;

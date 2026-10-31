@@ -178,13 +178,21 @@ document.addEventListener('alpine:init', () => {
       const { entry, distractors } = this.pickQuestion();
       this.locked = false;
 
+      // każda opcja niesie też województwo — po odsłonięciu pokazuje się na karcie
+      // (nauka geografii): poprawna bierze je z wpisu, dystraktory z mapy powiatów.
+      // Województwa powiatów o zduplikowanych nazwach bierzemy z pierwszego wpisu
+      // (to samo ograniczenie co w formatAnswer — etykieta i tak jest wspólna).
       const options = [
-        this.formatAnswer(entry.nazwa),
-        ...distractors.map((n) => this.formatAnswer(n)),
+        { text: this.formatAnswer(entry.nazwa), woj: entry.wojewodztwo, correct: true },
+        ...distractors.map((n) => ({
+          text: this.formatAnswer(n),
+          woj: data.powiatyByName[n]?.wojewodztwo ?? '',
+          correct: false,
+        })),
       ];
-      const shuffled = shuffle(options.map((text, i) => ({ text, correct: i === 0 })));
+      const shuffled = shuffle(options);
       this.correctIndex = shuffled.findIndex((o) => o.correct);
-      this.options = shuffled.map((o) => ({ text: o.text, state: '' }));
+      this.options = shuffled.map((o) => ({ text: o.text, woj: o.woj ?? '', state: '' }));
 
       // prefix = wyróżnik województwa+powiatu, suffix = wyróżnik pojazdu;
       // .plate-chars (flex space-between) rozstawia: prefix | nalepka | suffix

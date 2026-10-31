@@ -42,10 +42,13 @@
       </div>
       <p class="wojewodztwo" :class="{ visible: showWojewodztwo }"
          x-text="wojewodztwo ? `Województwo: ${wojewodztwo}` : ' '" x-cloak></p>
-      <div id="answers" class="answers">
+      <div id="answers" class="answers" :class="{ revealed: locked }">
         <template x-for="(opt, i) in options" :key="i">
           <button class="answer" :class="opt.state" :disabled="locked"
-                  @click="onAnswer(i)" x-text="opt.text"></button>
+                  @click="onAnswer(i)">
+            <span class="answer-text" x-text="opt.text"></span>
+            <span class="answer-woj" x-text="opt.woj"></span>
+          </button>
         </template>
       </div>
       <div class="actions">
