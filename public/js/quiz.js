@@ -45,6 +45,8 @@ document.addEventListener('alpine:init', () => {
     summaryScore: 0,
     summaryTime: '',
     summaryRate: '',
+    summaryVerdict: '',      // ocena opisowa (1 zdanie, wg wyniku)
+    showVerdict: false,      // fade-in oceny 0,4 s po wyniku
 
     /* ---------- dane ---------- */
 
@@ -73,6 +75,21 @@ document.addEventListener('alpine:init', () => {
             propozycje: v.propozycje ?? [],
           }));
         this.startGame();
+
+        // Debug: /?koniec=N → od razu ekran podsumowania z wynikiem N
+        // (do ręcznych podglądów ekranu końcowego). Działa TYLKO na hoście
+        // lokalnym — na produkcji parametr jest ignorowany.
+        const isLocalhost =
+          location.hostname === 'localhost' ||
+          location.hostname === '127.0.0.1' ||
+          location.hostname === '[::1]';
+        const koniec = isLocalhost
+          ? new URLSearchParams(location.search).get('koniec')
+          : null;
+        if (koniec !== null) {
+          this.score = Math.min(Math.max(Number.parseInt(koniec, 10) || 0, 0), QUESTIONS_PER_GAME);
+          this.endGame();
+        }
       } catch (err) {
         this.error = `Nie udało się wczytać danych: ${err.message}`;
       } finally {
