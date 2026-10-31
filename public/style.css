@@ -283,8 +283,8 @@ button {
 
     &:disabled { cursor: default; }
 
-    &.correct { border-color: #1a9c47; background: #e6f7ec; }
-    &.wrong { border-color: #cc3344; background: #fdecef; }
+    &.correct { border-color: #1a9c47; background: #e6f7ec; color: #1a9c47; }
+    &.wrong { border-color: #cc3344; background: #fdecef; color: #cc3344; }
   }
 
   & .answer-woj {
