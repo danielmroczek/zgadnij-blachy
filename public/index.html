@@ -72,8 +72,12 @@
     </div>
     <div id="summary" class="summary" x-show="phase === 'summary'" x-cloak>
       <h2>Koniec gry!</h2>
+      <div class="summary-score" role="status">
+        <span class="summary-score-value" x-text="summaryScore"></span><span class="summary-score-outof">/10</span>
+      </div>
+      <p class="summary-verdict" :class="{ visible: showVerdict }"
+         x-text="summaryVerdict" x-cloak></p>
       <div class="summary-row">
-        <p class="summary-line">Wynik: <strong x-text="summaryScore"></strong>/10 pkt</p>
         <p class="summary-line">Czas: <strong x-text="summaryTime"></strong></p>
         <p class="summary-line">Tempo: <strong x-text="summaryRate"></strong></p>
       </div>

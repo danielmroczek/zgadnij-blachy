@@ -2,6 +2,7 @@
 // Ten plik ładujemy PRZED skryptem CDN Alpine (moduły i defer wykonują się
 // w kolejności występowania w dokumencie), żeby listener zdążył się podpiąć.
 import { generatePlateText } from './plate.js';
+import { VERDICTS } from './verdicts-data.js';
 
 const QUESTIONS_PER_GAME = 10;
 const DISTRACTOR_COUNT = 3;  // poprawna odpowiedź + tyle dystraktorów
@@ -10,6 +11,7 @@ const AUTO_NEXT_MS = 3000;   // automatyczne przejście po odpowiedzi
 let autoTimer = null;        // uchwyt setInterval odliczania
 let answeringTime = 0;       // skumulowany czas odpowiedzi (bez pauz między pytaniami)
 let answeringStart = 0;      // performance.now() początku bieżącego segmentu odpowiedzi
+let verdictTimer = null;     // uchwyt setTimeout fade-inu oceny (anulowany przy resecie)
 
 // Dane ładowane raz w init() — nie potrzebują reaktywności, więc siedzą
 // poza stanem komponentu (zamiast być proxyjowanymi przez Alpine bez powodu).
@@ -109,6 +111,8 @@ document.addEventListener('alpine:init', () => {
       answeringTime = 0;
       answeringStart = 0;
       this.stopAutoNext();
+      clearTimeout(verdictTimer); // wstrzymaj ewentualny fade-in ze starej gry
+      this.showVerdict = false;
       this.phase = 'quiz';
       this.nextQuestion();
     },
@@ -119,7 +123,14 @@ document.addEventListener('alpine:init', () => {
       this.summaryScore = this.score;
       this.summaryTime = formatTime(elapsed);
       this.summaryRate = formatRate(this.score, elapsed);
+      // ocena opisowa: deterministycznie wg punktów (Q4) — los z 3 wariantów progu
+      const warianty = VERDICTS[Math.min(Math.max(this.score, 0), VERDICTS.length - 1)];
+      this.summaryVerdict = warianty[Math.floor(Math.random() * warianty.length)];
+      this.showVerdict = false;
       this.phase = 'summary';
+      // „beat”: wynik wjeżdża od razu, ocena dopiero po 0,4 s (Q7)
+      clearTimeout(verdictTimer);
+      verdictTimer = setTimeout(() => { this.showVerdict = true; }, 400);
       this.$nextTick(() => this.$refs.restart?.focus());
     },
 

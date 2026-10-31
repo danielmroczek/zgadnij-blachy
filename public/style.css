@@ -356,6 +356,43 @@ button {
   color: var(--ink);
 }
 
+/* Wynik jako bohater: wielkie cyfry, „/10” skromniejsze — nie do przegapienia
+   w ułamek sekundy; liczby zawsze w jednej linii (white-space: nowrap). */
+.summary-score {
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ink);
+
+  & .summary-score-value {
+    font-size: clamp(3.5rem, 14vw, 5.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  & .summary-score-outof {
+    font-size: clamp(1.5rem, 6vw, 2.2rem);
+    font-weight: 600;
+    color: #555;
+  }
+}
+
+/* Ocena opisowa: ta sama technika co .wojewodztwo — rezerwacja miejsca przez
+   zawsze obecny element, treść pokazywana opacity (zero przemieszczania).
+   Fade-in 0,4 s po wyniku sterowany z quiz.js (showVerdict). */
+.summary-verdict {
+  margin: 0;
+  max-width: 34ch;
+  min-height: 3em;         /* miejsce na 2–3 linie tekstu na mobile */
+  font-size: 1.05rem;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--ink);
+  opacity: 0;
+  transition: none;
+
+  &.visible { opacity: 1; transition: opacity 0.35s ease-in; }
+}
+
 /* statystyki + przycisk: JEDEN deterministyczny reżim na szerokość.
    ≥660 px: wszystko w jednym wierszu (compact metrics gwarantują, że się mieści,
    więc nic nigdy nie spada w losowym miejscu). <660 px: kolumna — statystyki pod
