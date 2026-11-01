@@ -93,7 +93,12 @@ aktualnego rozporządzenia z nowelizacjami.
   (`--plate-w: min(calc(100vw - 32px), 520px)` ze skalą `--mm`), siatka
   odpowiedzi 1 kolumna → 2×2 od 480 px, kolumnowe podsumowanie < 660 px,
   `100svh` dla mobilnego Safari, `touch-action: manipulation` (bez opóźnienia
-  tapa), hover tylko przy `@media (hover: hover)`, dotykowe cele ≥ ~44 px.
+  tapa), hover tylko przy `@media (hover: hover)`, dotykowe cele ≥ ~44 px;
+  **tryb gęsty na wąskich ekranach** (≤ 660 px): nagłówek (tytuł + wynik)
+  w jednym wierszu, zmniejszone pola odpowiedzi i odstępy — celem jest cały
+  quiz na jednym ekranie bez przewijania (toolbar/pasek adresu telefonu
+  zabiera znaczną część wysokości); tablica rejestracyjna nie skaluje się
+  w tym trybie inaczej niż przez płynną szerokość `--plate-w`.
 - Przy każdej zmianie UI weryfikować render na wąskich viewportach
   (≈360–400 px) i desktopie (~1280 px+), łącznie z ekranem podsumowania
   i stanami poprawna/błędna odpowiedź.
