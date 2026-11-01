@@ -37,6 +37,7 @@ document.addEventListener('alpine:init', () => {
     variant: '',
     options: Array.from({ length: DISTRACTOR_COUNT + 1 }, () => ({ text: '', state: '' })),
     status: '',
+    promptClass: '',         // kolor werdyktu na #prompt ('correct' | 'wrong' | '')
     remaining: null,           // sekundy do auto-przejścia (null = nie liczy)
     showNext: false,
     wojewodztwo: '',          // województwo bieżącej tablicy — widoczne dopiero po odpowiedzi
@@ -204,6 +205,7 @@ document.addEventListener('alpine:init', () => {
       this.showWojewodztwo = false;
       this.showNext = false;
       this.status = '';
+      this.promptClass = '';
     },
 
     /* ---------- interakcja ---------- */
@@ -223,6 +225,7 @@ document.addEventListener('alpine:init', () => {
 
       if (isCorrect) this.score += 1;
       this.status = isCorrect ? '✅ Dobrze!' : '❌ Źle.';
+      this.promptClass = isCorrect ? 'correct' : 'wrong';
       this.showWojewodztwo = true; // ujawnij województwo bieżącej tablicy
 
       this.showNext = true;

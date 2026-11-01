@@ -22,10 +22,14 @@
 </head>
 <body x-data="quiz" @pointerdown="onPointerDown($event)">
   <main class="app">
-    <h1 id="title" x-show="phase === 'quiz'" x-cloak>Zgadnij blachy!</h1>
-    <div class="score-bar" id="score-bar" x-show="phase === 'quiz'" x-cloak>
-      <span>Pytanie: <strong x-text="roundLabel">1/10</strong></span>
-      <span>Punkty: <strong x-text="score">0</strong></span>
+    <!-- tryb gęsty (mobile ≤ 41.25rem): tytuł i wynik w JEDNYM wierszu
+         (patrz .topbar w style.css); na desktopie kolumna jak dawniej -->
+    <div class="topbar" x-show="phase === 'quiz'" x-cloak>
+      <h1 id="title">Zgadnij blachy!</h1>
+      <div class="score-bar" id="score-bar">
+        <span>Pytanie: <strong x-text="roundLabel">1/10</strong></span>
+        <span>Punkty: <strong x-text="score">0</strong></span>
+      </div>
     </div>
     <p x-show="loading">Ładowanie danych…</p>
     <p x-show="error" x-text="error" class="status"></p>
@@ -42,6 +46,12 @@
       </div>
       <p class="wojewodztwo" :class="{ visible: showWojewodztwo }"
          x-text="wojewodztwo ? `Województwo: ${wojewodztwo}` : ' '" x-cloak></p>
+      <!-- jeden wiersz, dwie role: w trakcie pytania — treść pytania,
+           po odpowiedzi — werdykt (status z quiz.js); przy nowym pytaniu
+           status wraca do '' → wiersz znów pyta. role=status = ogłaszanie
+           zmiany przez czytniki ekranu. -->
+      <p id="prompt" class="prompt" :class="promptClass" role="status"
+         x-text="status ? status : 'Skąd jest ta tablica?'"></p>
       <div id="answers" class="answers" :class="{ revealed: locked }">
         <template x-for="(opt, i) in options" :key="i">
           <button class="answer" :class="opt.state" :disabled="locked"
@@ -71,7 +81,6 @@
                 x-text="remaining === null ? nextButtonLabel : `${nextButtonLabel} (${remaining})`"
                 x-cloak></button>
       </div>
-      <p id="status" class="status" x-text="status"></p>
     </div>
     <div id="summary" class="summary" x-show="phase === 'summary'" x-cloak>
       <h2>Koniec gry!</h2>

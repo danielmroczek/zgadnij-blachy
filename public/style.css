@@ -89,9 +89,10 @@ button {
   padding: 2rem 1rem;
   width: 100%;
   max-width: 40rem;
-  /* bezpieczne centrowanie: margin:auto w gridzie centruje, gdy jest miejsce,
-     a przy przepełnieniu (mały ekran w poziomie) scroll działa od samej góry */
-  margin: auto;
+  /* margin 0 auto (nie auto): bez pionowego centrowania — inaczej sticky belka
+     (.topbar) startuje we właściwym miejscu ekranu i „klei się" dopiero po
+     przewinięciu; to samo ustaliliśmy wcześniej na mobile */
+  margin: 0 auto;
 
   & h1 {
     font-size: 1.4rem;
@@ -114,7 +115,31 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
+  width: 100%;
+  /* auto-marginesy pionowe: na desktopie .app wypełnia cały viewport (grid body
+     rozciąga item), więc quiz centruje się w przestrzeni POD sticky belką —
+     tablica wisi bliżej środka ekranu (jak przed przeniesieniem tytułu do belki);
+     na mobile niżej jawnie wyłączamy (tam treść ma.startować od samej góry) */
+  margin: auto 0;
+}
+
+.topbar {
+  /* sticky belka także na desktopie (h1 po lewej, wynik po prawej): analogicznie
+     do trybu gęstego — ujemny margin-top anuluje padding .app, top:0 klei belkę
+     do górnej krawędzi ekranu, pełna szerokość przez inline-size (padding .app
+     nie jest anulowany poziomo — na desktopie belka maoddzielić treść od krawędzi) */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: -2rem 0 0;
+  padding: 0.75rem 0 0.4rem;
+  background: var(--bg);
+  border-bottom: 1px solid rgba(23, 24, 28, 0.08);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
   width: 100%;
 }
 
@@ -236,9 +261,11 @@ button {
 .wojewodztwo {
   /* element zawsze zajmuje swój place w layoucie (rezerwacja miejsca pod tablicą),
      tekst pojawia się wyłącznie przez opacity — zero przemieszczania reszty strony;
-     ujemny margin-top: element siedzi blisko tablicy (gap .quiz liczy się od tej linii) */
-  margin: -1.5rem 0 -.5rem;
-  min-height: 1.4em;
+     ujemne marginesy: bez nich wiersz dostałby pełny gap .quiz (2rem) z każdej
+     strony i całość zrobiłaby się zbyt wysoka — ale umiarkowane (ma być ciasno,
+     nie na styk; po odpowiedzi koło werdyktu i nad kartami potrzeba oddechu) */
+  margin: -1rem 0 -1rem;
+  min-height: 1em;
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -328,6 +355,36 @@ button {
     min-height: calc(3 * 1.2em + 0.5rem * 2 + 0.2rem);
     display: grid;           /* kontekst dla align-content (button domyślnie nie ma) */
     align-content: center;   /* zawartość wyśrodkowana pionowo w stałej wysokości */
+  }
+}
+
+/* ---------- wiersz pytania / werdyktu ---------- */
+
+/* #prompt: pod tablicą — w trakcie pytania „Skąd jest ta tablica?",
+   po odpowiedzi ten sam wiersz pokazuje werdykt (✅ Dobrze! / ❌ Źle.).
+   Zawsze w layoucie (rezerwacja wysokości jak .status), więc przycisk
+   „Następna" ani karty nie podskakują. Kolor werdyktu ustawia quiz.js
+   przez klasę .correct/.wrong na #prompt. */
+.prompt {
+  /* ujemny margin-top: pytanie/werdykt ma wisieć bliżej tablicy niż pełny gap .quiz
+     (2rem), a ponadto między promptem a odpowiedziami są jeszcze wiersze woj.
+     + kolejne gapy — bez podciągnięcia całość tablica→odpowiedzi robi się zbyt wysoka */
+  margin: 0 0 -.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  min-height: 1.4em;
+  color: var(--ink);
+}
+
+.prompt.correct { color: #1a9c47; }
+.prompt.wrong { color: #cc3344; }
+
+/* wersja mobilna: werdykt/pytanie mniejszy — informacja wtórna wobec kart */
+@media (max-width: 41.25rem) {
+  .prompt {
+    font-size: 0.8rem; min-height: 1.2em; font-weight: 500;
+    /* gap .quiz na mobile to 1rem — to wystarczy; anuluj ujemny podciągnięcie z desktopu */
+    margin: 0;
   }
 }
 
@@ -463,4 +520,94 @@ button {
   }
 
   .summary-row .btn-next { margin-top: 0.9rem; }
+}
+
+/* ---------- tryb gęsty (mobile) ----------
+   Cel: cały quiz na jednym ekranie bez przewijania (pasek adresu/bookmarki
+   iOS/Android zjadają ~15–25% wysokości 100svh). Decyzje: tytuł + wynik
+   w jednym wierszu (.topbar), pola odpowiedzi mniejsze, gapy ściskane,
+   województwo tablicy NIE jest dublowane pod tablicą (ta sama wartość jest
+   już na karcie poprawnej odpowiedzi — .answer-woj), werdykt „dobrze/źle”
+  zostaje na dole (#status) w wersji kompaktowej. Breakpoint świadomie ten
+   sam co .summary-row: 41.25rem — jedna skala „mobilnej gęstości”. */
+@media (max-width: 41.25rem) {
+    /* margin: 0 auto zamiast auto — bez pionowego centrowania: treść startuje
+      na samej górze, inaczej sticky nagłówek (.topbar) „kleiłby się" dopiero
+      po przewinięciu, a na starcie wisi w powietrzu */
+    .app { margin: 0 auto; padding: 0.6rem 1rem; gap: 0.75rem; }
+
+  /* nagłówek: jeden wiersz = tytuł z lewej + wynik z prawej (~28 px zamiast ~72 px).
+     Sticky „do samej góry”: ujemny margin-top anuluje padding .app (element
+     startuje na y=0), top:0 klei go do górnej krawędzi ekranu; ujemne
+     marginesy poziome = tło od krawędzi do krawędzi (full-bleed). Gdy treść
+     nie mieści się na małym ekranie i strona się przewija, nagłówek z wynikiem
+     zostaje widoczny nad tablicą. */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: -0.6rem -1rem 0;
+    padding: 0.5rem 1rem 0.4rem;
+    background: var(--bg);
+    border-bottom: 1px solid rgba(23, 24, 28, 0.08);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .topbar h1 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; text-align: center; margin: 0; }
+
+  .topbar .score-bar { font-size: 0.75rem; gap: 0.9rem; }
+
+    /* gap głównie „pracuje" pod tablicą (wiersz .prompt pyta, województwo na
+      mobile jest ukryte): 1rem = widoczny oddech; niższe bloki niżej mają
+      własne, mniejsze odstępy przez strukturę kart (patrz .answers) */
+    .quiz { gap: 1rem; margin: 0; }
+
+    /* województwo tablicy na mobile nie jest dublowane pod tablicą — ta sama
+      wartość jest na karcie poprawnej (.answer-woj); oszczędzamy ~30 px */
+  .wojewodztwo { display: none; }
+
+  /* pola odpowiedzi: mniejsze pady i font — zamiast ~78 px pola wychodzą
+     ~56–60 px; 4 karty 2×(2 linie etykiety) + 1 linia .answer-woj nadal się
+     mieszczą — etykiety powiatu w 2 liniach potwierdza probe
+     (node script/probe-odpowiedzi.js), a .answer-woj zmieści się w jednej */
+  .answer {
+    /* line-height normalny ≈ 1.2 (jak w bloku @supports wyżej) — w px, żeby
+      liczyć przewidywalnie przy font-size 0.9rem: 2×17.3 (etykieta) +
+       14.4 (linia województwa) + 2×4.8 (pady) + 3.2 (ramki) ≈ 57 px */
+    padding: 0.3rem 0.6rem;
+    font-size: 0.9rem;
+    min-height: 57px;
+  }
+
+  .answer-woj { font-size: 0.6rem; }
+
+  .answers { gap: 0.5rem; }
+
+    /* przycisk „Następna": pełna szerokość kolumny i ≥48 px wysokości —
+      główny cel kolejnej akcji, comfy dla kciuka (dotykowy standard ≥44 px).
+      Niezmiennik stałej szerokości (sizer + tabular-nums, komentarz kanoniczny
+      w index.html) działa dalej: sizer i przycisk są w tej samej komórce
+      gridu, width:100% rozciąga oba identycznie. Wysokość dotyka też
+      „Zagraj ponownie" (ta sama klasa .btn-next w .summary). */
+    .btn-next {
+     width: 100%;
+     min-height: 48px;
+     padding: 0.6rem 1rem;
+     font-size: 1rem;
+    }
+
+    /* grid .actions domyślnie zwęża się do szerokości sizerka — bez width:100%
+       przycisk (width:100% powyżej) nie rozciągnąłby się na całą kolumnę */
+    .actions { width: 100%; }
+
+  /* podsumowanie w也要 też gęste: mniejszy wynik i wynik statystyk */
+  .summary { gap: 0.6rem; padding: 0.3rem 0; }
+  .summary-score .summary-score-value { font-size: clamp(2.6rem, 10vw, 3.4rem); }
+  .summary-score .summary-score-outof { font-size: clamp(1.1rem, 4.5vw, 1.5rem); }
+  .summary-verdict { font-size: 0.95rem; min-height: 2.6em; }
+  .summary-line { font-size: 0.85rem; }
 }
