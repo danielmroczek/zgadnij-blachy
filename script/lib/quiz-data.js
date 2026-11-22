@@ -16,6 +16,7 @@ import { fetchRejestracje } from './rejestracje.js';
 import { loadSiedziby, BAZA_JST_URL } from './siedziby.js';
 import { buildOdpowiedzi } from './odpowiedzi.js';
 import { fetchSluzby } from './sluzby.js';
+import { powiatKey } from '../../public/js/powiat.js';
 
 const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const DIST = join(root, 'public', 'dist');
@@ -46,8 +47,7 @@ export async function buildQuizData({ top = 5, output = DEFAULT_OUTPUT } = {}) {
   // Join po NAZWIE nie wystarcza — 10 nazw powiatów się dubluje między
   // województwami (średzki, świdnicki, opolski…); klucz to para (wojewodztwo,
   // nazwa). ELI ma województwo UPPERCASE, JST — z wielkiej litery → lowercase.
-  const klucz = (woj, nazwa) => `${woj.toLowerCase()}|${nazwa.toLowerCase()}`;
-  const siedzibaByKlucz = new Map(powiaty.map((p) => [klucz(p.wojewodztwo, p.nazwa), p]));
+  const siedzibaByKlucz = new Map(powiaty.map((p) => [powiatKey(p.wojewodztwo, p.nazwa), p]));
   for (const [kod, propozycje] of Object.entries(odpowiedzi)) {
     rejestracje[kod].propozycje = propozycje;
   }
@@ -55,7 +55,7 @@ export async function buildQuizData({ top = 5, output = DEFAULT_OUTPUT } = {}) {
   for (const [kod, rej] of Object.entries(rejestracje)) {
     // służby (typ 'służba') nie mają powiatu — idą dalej bez siedziby/typu powiatowego
     if (rej.typ === 'służba') continue;
-    const p = siedzibaByKlucz.get(klucz(rej.wojewodztwo, rej.nazwa));
+    const p = siedzibaByKlucz.get(powiatKey(rej.wojewodztwo, rej.nazwa));
     if (!p) {
       console.warn(`⚠ ${kod}: brak siedziby dla "${rej.nazwa}" (${rej.wojewodztwo}) — wpis bez siedziba/typ`);
       continue;

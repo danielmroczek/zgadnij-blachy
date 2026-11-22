@@ -18,6 +18,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { chromium } from 'playwright';
+import { buildPowiatIndex, formatAnswer, powiatKey } from '../public/js/powiat.js';
 
 const args = { dist: 'public/dist/quiz-data.json', font: 16, padY: 20 };
 for (let i = 2; i < process.argv.length; i++) {
@@ -28,28 +29,16 @@ for (let i = 2; i < process.argv.length; i++) {
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const data = JSON.parse(readFileSync(join(root, args.dist), 'utf8'));
 
-// — formatAnswer z public/js/quiz.js (musi pozostać w synchronizacji)
-function formatAnswer(nazwa, info) {
-  if (info && info.typ === 'miasto') return `${nazwa} (miasto)`;
-  return `${info?.siedziba ?? nazwa} (p. ${nazwa})`;
-}
+const byKey = buildPowiatIndex(data.rejestracje);
 
 // — pełny zbiór etykiet: powiaty z puli + dystraktory (propozycje), bez duplikatów
-const byName = new Map();
+const labels = new Set();
+for (const rej of byKey.values()) labels.add(formatAnswer(rej.nazwa, rej));
 for (const rej of Object.values(data.rejestracje)) {
-  if (rej.typ === 'służba') continue;
-  if (rej.nazwa && !byName.has(rej.nazwa)) byName.set(rej.nazwa, rej);
-  for (const n of rej.propozycje ?? []) {
-    if (!byName.has(n)) byName.set(n, null); // siedziba dociągnięta niżej
+  for (const p of rej.propozycje ?? []) {
+    labels.add(formatAnswer(p.nazwa, byKey.get(powiatKey(p.wojewodztwo, p.nazwa))));
   }
 }
-for (const [nazwa, rej] of byName) {
-  if (!rej?.siedziba) {
-    byName.set(nazwa, Object.values(data.rejestracje)
-      .find((r) => r.nazwa === nazwa && r.siedziba) ?? { siedziba: nazwa });
-  }
-}
-const labels = [...byName.keys()].map((nazwa) => formatAnswer(nazwa, byName.get(nazwa)));
 
 // — najgorsze layouty: (a) telefon 1 kolumna (wąski ekran),
 //                      (b) grid 2×2 tuż nad progiem 480px
@@ -60,7 +49,8 @@ const LINE_H = Math.round(args.font * 1.2); // line-height normalny ≈ 1.2
 const MAX_H = 2 * LINE_H + args.padY;       // stała wysokość: 2 linie + pady
 
 console.log(`font=${args.font}px, lineHeight=${LINE_H}, pad-y=${args.padY} → limit=${MAX_H}px (2 linie + pady)`);
-console.log(`etykiet do sprawdzenia: ${labels.length}`);
+const labelList = [...labels];
+console.log(`etykiet do sprawdzenia: ${labelList.length}`);
 
 // — cały pomiar i symulacja zawijania w przeglądarce (metryki 1:1 z quizem);
 //   zwraca: rozkład linii per layout × wariant fontu + TOP-10 najdłuższych
@@ -104,7 +94,7 @@ const analyze = async (fontPx) => {
     ctx.font = `13px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
     const small = run(ctx);
     return { normal, small };
-  }, { labels, fontPx, MOBILE_COL_W, GRID_COL_W });
+  }, { labels: labelList, fontPx, MOBILE_COL_W, GRID_COL_W });
   await browser.close();
   return result;
 };

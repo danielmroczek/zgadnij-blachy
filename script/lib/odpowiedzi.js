@@ -11,12 +11,15 @@
 //    wchodzą, niżej);
 //  - poprawna odpowiedź wykluczona; per kod rejestracji (Toruń ≠ toruński).
 //
-// Kandydat = POWIAT (typeof: nazwa) — tożsamość opcji quizu; trudność mierzymy
-// jego siedzibą. Dzięki temu grodzki i ziemski o tej samej siedzibie to dwa
-// odrębne kandydaty ("Poznań (miasto)" vs "Poznań (p. poznański)"), bez
-// duplikatów etykiet. Powiaty o TYCH SAMYCH nazwach w różnych województwach
-// (średzki, świdnicki...) deduplikujemy: etykieta quizu i tak bierze pierwszy
-// wpis, więc duplikat byłby identyczny.
+// Kandydat = POWIAT — tożsamość opcji quizu to PARA (województwo, nazwa);
+// trudność mierzymy jego siedzibą. Dzięki temu grodzki i ziemski o tej samej
+// siedzibie to dwa odrębne kandydaty ("Poznań (miasto)" vs "Poznań
+// (p. poznański)"), a powiaty o TYCH SAMYCH nazwach w różnych województwach
+// (grodziski, średzki, świdnicki...) pozostają osobnymi opcjami — mają różne
+// siedziby, więc różne etykiety. Deduplikacja po samej nazwie gubiła jedną
+// z nich i podstawiała jej siedzibę drugiej (np. WGM → Grodzisk Wielkopolski).
+
+import { powiatKey, sameWojewodztwo } from '../../public/js/powiat.js';
 
 // --- wagi scoringu ---
 const W_TRAFIENIE = 1; // litera wyróżnika występuje gdziekolwiek w nazwie
@@ -45,27 +48,36 @@ function scorePrefiks(wyroznik, nazwaSiedziby) {
 }
 
 // rejestracje: { kod: { wojewodztwo, nazwa } }; powiaty: [{ nazwa, siedziba, typ, wojewodztwo }]
-// Zwraca { kod: [nazwa powiatu x TOP] } (bez poprawnej odpowiedzi) — quiz-data.js
-// dokleja tę listę jako pole `propozycje` do wpisu rejestracji kodu.
+// Zwraca { kod: [{ nazwa, wojewodztwo } x TOP] } (bez poprawnej odpowiedzi) —
+// quiz-data.js dokleja tę listę jako pole `propozycje` do wpisu rejestracji kodu.
+// Województwo jest częścią tożsamości, bo nazwy powiatów dublują się między
+// województwami (np. "grodziski" jest i w mazowieckim, i w wielkopolskim).
+
 export function buildOdpowiedzi(rejestracje, powiaty, top = 5) {
-  // dedupe po nazwie powiatu (duplikaty międzywojewódzkie są naturalne,
-  // ale duplikat kandydata dawałby identyczną opcję)
-  const kandydaci = powiaty.filter(
-    (p, i, arr) => arr.findIndex((q) => q.nazwa === p.nazwa) === i
-  );
+  // dedupe po parze (województwo, nazwa) — ten sam powiat ma wiele kodów
+  // rejestracji, ale jako opcja quizu występuje raz
+  const widziane = new Set();
+  const kandydaci = powiaty.filter((p) => {
+    const k = powiatKey(p.wojewodztwo, p.nazwa);
+    if (widziane.has(k)) return false;
+    widziane.add(k);
+    return true;
+  });
 
   const odpowiedzi = {};
   for (const [kod, info] of Object.entries(rejestracje)) {
     const wyroznik = kod.slice(1).toLowerCase(); // kod bez litery województwa
+    const kluczInfo = powiatKey(info.wojewodztwo, info.nazwa);
     const wynik = kandydaci
-      .filter((p) => p.nazwa !== info.nazwa)
+      .filter((p) => powiatKey(p.wojewodztwo, p.nazwa) !== kluczInfo)
       .map((p) => ({
         nazwa: p.nazwa,
+        wojewodztwo: p.wojewodztwo,
         score: scorePrefiks(wyroznik, p.siedziba)
-          + (p.wojewodztwo === info.wojewodztwo ? W_WOJEWODZTWO : 0),
+          + (sameWojewodztwo(p.wojewodztwo, info.wojewodztwo) ? W_WOJEWODZTWO : 0),
       }))
       .sort((a, b) => b.score - a.score || a.nazwa.localeCompare(b.nazwa, 'pl'));
-    odpowiedzi[kod] = wynik.slice(0, top).map((x) => x.nazwa);
+    odpowiedzi[kod] = wynik.slice(0, top).map(({ nazwa, wojewodztwo }) => ({ nazwa, wojewodztwo }));
   }
   return odpowiedzi;
 }

@@ -2,6 +2,7 @@
 // Ten plik ładujemy PRZED skryptem CDN Alpine (moduły i defer wykonują się
 // w kolejności występowania w dokumencie), żeby listener zdążył się podpiąć.
 import { generatePlateText } from './plate.js';
+import { buildPowiatIndex, formatAnswer, powiatKey } from './powiat.js';
 import { VERDICTS } from './verdicts-data.js';
 
 const QUESTIONS_PER_GAME = 10;
@@ -17,10 +18,9 @@ let verdictTimer = null;     // uchwyt setTimeout fade-inu oceny (anulowany przy
 // poza stanem komponentu (zamiast być proxyjowanymi przez Alpine bez powodu).
 const data = {
   rejestracje: null,   // quiz-data.json -> rejestracje
-  powiatyByName: null, // nazwa powiatu -> { siedziba, typ } (z wpisów rejestracji)
+  powiatyByKey: null,  // "województwo|nazwa powiatu" -> { siedziba, typ } z wpisów rejestracji
   pool: [],            // pula kodów z odpowiedziami (bez Warszawy)
 };
-
 document.addEventListener('alpine:init', () => {
   Alpine.data('quiz', () => ({
     /* ---------- stan ---------- */
@@ -55,11 +55,7 @@ document.addEventListener('alpine:init', () => {
       try {
         const json = await loadJson('dist/quiz-data.json');
         data.rejestracje = json.rejestracje;
-        data.powiatyByName = Object.fromEntries(
-          Object.values(json.rejestracje)
-            .filter((r) => r.siedziba)
-            .map((r) => [r.nazwa, { siedziba: r.siedziba, typ: r.typ, wojewodztwo: r.wojewodztwo }])
-        );
+        data.powiatyByKey = buildPowiatIndex(json.rejestracje);
 
         // domyślnie pomijamy tablice "dodatkowe" (2. litera województwa);
         // przełącznik w ustawieniach połączy je z powrotem z pulą.
@@ -167,12 +163,6 @@ document.addEventListener('alpine:init', () => {
       return { entry, distractors };
     },
 
-    formatAnswer(nazwa) {
-      const info = data.powiatyByName[nazwa];
-      if (info && info.typ === 'miasto') return `${nazwa} (miasto)`;
-      return `${info?.siedziba ?? nazwa} (p. ${nazwa})`;
-    },
-
     /* ---------- render ---------- */
 
     renderQuestion() {
@@ -180,16 +170,19 @@ document.addEventListener('alpine:init', () => {
       this.locked = false;
 
       // każda opcja niesie też województwo — po odsłonięciu pokazuje się na karcie
-      // (nauka geografii): poprawna bierze je z wpisu, dystraktory z mapy powiatów.
-      // Województwa powiatów o zduplikowanych nazwach bierzemy z pierwszego wpisu
-      // (to samo ograniczenie co w formatAnswer — etykieta i tak jest wspólna).
+      // (nauka geografii). Tożsamość powiatu to (województwo, nazwa), więc
+      // siedzibę i województwo bierzemy z właściwego wpisu, nie po samej nazwie.
+      const optionFor = (nazwa, wojewodztwo, correct) => {
+        const info = data.powiatyByKey.get(powiatKey(wojewodztwo, nazwa));
+        return {
+          text: formatAnswer(nazwa, info),
+          woj: info?.wojewodztwo ?? wojewodztwo ?? '',
+          correct,
+        };
+      };
       const options = [
-        { text: this.formatAnswer(entry.nazwa), woj: entry.wojewodztwo, correct: true },
-        ...distractors.map((n) => ({
-          text: this.formatAnswer(n),
-          woj: data.powiatyByName[n]?.wojewodztwo ?? '',
-          correct: false,
-        })),
+        optionFor(entry.nazwa, entry.wojewodztwo, true),
+        ...distractors.map((d) => optionFor(d.nazwa, d.wojewodztwo, false)),
       ];
       const shuffled = shuffle(options);
       this.correctIndex = shuffled.findIndex((o) => o.correct);
