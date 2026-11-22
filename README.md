@@ -104,7 +104,9 @@ tego samego powiatu dane się powtarzają, to zamierzona redundancja):
                                         //   (nowelizacja, jeśli kod został dodany później)
       "siedziba": "Mińsk Mazowiecki", "typ": "powiat",
       // typ: "powiat" | "miasto" (miasto na prawach powiatu) | "służba"
-      "propozycje": ["makowski", ...]   // proponowane odpowiedzi (dystraktory)
+      // proponowane odpowiedzi (dystraktory); tożsamość powiatu = para
+      // (województwo, nazwa), bo nazwy dublują się między województwami
+      "propozycje": [{"nazwa": "makowski", "wojewodztwo": "Mazowieckie"}, ...]
     },
     "HP": {
       "nazwa": "Policji", "typ": "służba",
@@ -124,6 +126,7 @@ public/
   style.css               # styl flat: tablica 520×114, euroband, nalepka legalizacyjna
   js/
     plate.js              # generator wyróżnika pojazdu wg §30 Dz.U. 2024 poz. 1709
+    powiat.js             # wspólna tożsamość (województwo, nazwa) i etykieta odpowiedzi
     quiz.js               # komponent Alpine.data('quiz'): stan, pytania, punkty, timer gry
     verdicts-data.js      # WYGENEROWANY: zaszyfrowane oceny opisowe (nie edytować)
   dist/
@@ -133,7 +136,7 @@ script/                   # skrypty Node
   prepare-data.js         # główny skrypt: generuje public/dist/quiz-data.json
                           #   ("npm run prepare-data"; --top/--out)
   probe-odpowiedzi.js     # jednorazowy probe stałej wysokości pól odpowiedzi:
-                          #   liczy linie wszystkich 370 etykiet (Playwright +
+                          #   liczy linie wszystkich 380 etykiet (Playwright +
                           #   canvas.measureText) przy najgorszych layoutach i
                           #   weryfikuje limit 2 linii z style.css (.answer min-height)
   lib/
@@ -172,10 +175,16 @@ Dystraktory wybierane są wg podobieństwa **wyróżnika powiatu** do nazwy sied
   za pozycję 0 nazwy i za zgodną pozycję),
 - duży bonus za wspólny prefiks (JA → Jarosław, Jasin, Janów),
 - bonus za to samo województwo (kandydaci z innych województw też wchodzą, niżej),
-- poprawna odpowiedź wykluczona.
+- poprawna odpowiedź wykluczona (po parze województwo + nazwa powiatu).
 
 Quiz losuje 3 dystraktory z top-5 kandydatów kodu (konfiguracja: `--top N`).
 Wag scoringu znajdziesz na górze `script/lib/odpowiedzi.js`.
+
+Tożsamością powiatu jest para **województwo + nazwa**, nie sama nazwa: powiaty
+takie jak `grodziski`, `średzki` czy `świdnicki` istnieją w kilku województwach
+i mają różne siedziby (np. WGM → Grodzisk Mazowiecki, PGO → Grodzisk
+Wielkopolski). Dlatego każdy dystraktor niesie też województwo, a quiz szuka
+siedziby po tej parze.
 
 Nazwa stolicy jest normalizowana: z rozporządzenia przychodzi „m.st. Warszawa”,
 w danych i quizie występuje po prostu „Warszawa” (jak każde miasto na prawach powiatu).

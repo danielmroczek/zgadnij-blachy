@@ -10,7 +10,8 @@ _Avoid_: opcja, przycisk odpowiedzi
 
 **Etykieta odpowiedzi**:
 Tekst w polu odpowiedzi, tworzony przez `formatAnswer` — siedziba powiatu +
-rozróżnienie `(miasto)`/`(p. …)`; skończony zbiór 370 etykiet (powiaty + dystraktory).
+rozróżnienie `(miasto)`/`(p. …)`; skończony zbiór 380 etykiet (wszystkie powiaty,
+tożsamość = województwo + nazwa, więc duplikaty nazw między województwami są osobne).
 _Avoid_: odpowiedź, nazwa dystraktora
 
 **Województwo tablicy**:
